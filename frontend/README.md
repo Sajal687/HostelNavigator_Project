@@ -1,0 +1,1 @@
+In this frontend directory where it consist of multiple component files .
