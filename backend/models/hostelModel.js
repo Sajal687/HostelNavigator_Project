@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const hostelSchema = new mongoose.Schema(
   {
     hostel_id: {
@@ -11,8 +12,22 @@ const hostelSchema = new mongoose.Schema(
       required: true,
     },
     hostel_address: {
-      type: Object,
-      required: true,
+      street: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      postal_code: {
+        type: String,
+        required: true,
+      },
     },
     hostel_gender_type: {
       type: String,
@@ -55,6 +70,24 @@ const hostelSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    all_users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    hostel_rooms: 
+      {
+        room_number: {
+          type: String,
+          required: true,
+        },
+        room_capacity: {
+          type: Array,
+          required: true,
+          // enum: ["Single", "Double", "Triple" , "Multi-Sharing"], 
+        },
+      }
   },
   {
     timestamps: true,

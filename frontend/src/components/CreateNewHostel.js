@@ -2,12 +2,16 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import ImageUpload from "./ImageUpload";
 import { FormProvider, useForm, Controller } from "react-hook-form";
+
 import {
   Grid,
   Box,
   TextField,
   FormControlLabel,
   FormControl,
+  FormLabel,
+  FormGroup,
+  Checkbox,
   RadioGroup,
   Radio,
   Select,
@@ -21,6 +25,13 @@ import {
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useTheme } from "@mui/material/styles";
+
+const roomCapacity = [
+  { id: "single", label: "Single" },
+  { id: "double", label: "Double" },
+  { id: "triple", label: "Triple" },
+  { id: "multi-sharing", label: "Multi-Sharing" },
+];
 
 const facilities = [
   "Table",
@@ -51,6 +62,61 @@ const MenuProps = {
 const CreateNewHostel = () => {
   const methods = useForm();
   const [message, setMessage] = useState("");
+  const [envVariable, setEnvVariable] = useState(null);
+  const [addressDetail, setAddressDetail] = useState([]);
+  const [cityNameVisible, setCityNameVisible] = useState(false);
+  const [stateNameVisible, setStateNameVisible] = useState(false);
+  const [selectedRoomCapacity, setSelectedRoomCapacity] = useState([]);
+
+  useEffect(() => {
+    const fetchEnvrionmentVariable = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/api/env");
+        setEnvVariable(response.data);
+      } catch (error) {
+        console.error("Error fetching environment variables:", error);
+      }
+    };
+    fetchEnvrionmentVariable();
+  }, []);
+
+  const handleRoomCapacityToggle = (roomId) => {
+    setSelectedRoomCapacity((prevSelectedRoomCapacity) => {
+      if (prevSelectedRoomCapacity.includes(roomId)) {
+        return prevSelectedRoomCapacity.filter((id) => id !== roomId);
+      } else {
+        return [...prevSelectedRoomCapacity, roomId];
+      }
+    });
+  };
+
+  const handlePostalCodeChange = async (e) => {
+    const codeValue = e.target.value;
+
+    if (codeValue.length === 6) {
+      const options = {
+        method: "POST",
+        url: "https://get-details-by-pin-code-india.p.rapidapi.com/detailsbypincode",
+        headers: {
+          "content-type": "application/json",
+          "X-RapidAPI-Key": envVariable.POSTALCODE_API_KEY,
+          "X-RapidAPI-Host": "get-details-by-pin-code-india.p.rapidapi.com",
+        },
+        data: { pincode: codeValue },
+      };
+
+      try {
+        const response = await axios.request(options);
+        setAddressDetail(response.data.details);
+        setCityNameVisible(true);
+        setStateNameVisible(true);
+      } catch (error) {
+        console.error(error);
+        setCityNameVisible(false);
+        setStateNameVisible(false);
+      }
+    }
+  };
 
   const handleSubmit = methods.handleSubmit(async (data) => {
     const formData = new FormData();
@@ -62,17 +128,34 @@ const CreateNewHostel = () => {
     formData.append("owner_phone_number", data.ownerPhnNumber);
     formData.append("owner_email", data.ownerEmail);
 
+
     data.hostelFacilities.forEach((facility) => {
       formData.append("hostel_facilities", facility);
     });
 
+    const { pincode, city_name, state_name } = addressDetail[0];
+
+    console.log( pincode, city_name, state_name)
+
     const hostelAddress = {
-      street: data.hostelAddressStreet,
-      city: data.hostelAddressCity
+      street: data.street,
+      city: city_name,
+      state: state_name,
+      postal_code: pincode,
     };
-    data.hostelAddress = hostelAddress; 
-    
+    data.hostelAddress = hostelAddress;
     formData.append("hostel_address", JSON.stringify(data.hostelAddress));
+
+    
+    
+    const roomDetail = {
+      room_number : data.numberOfRooms,
+      room_capacity : selectedRoomCapacity
+    };
+    data.roomDetail = roomDetail;
+    formData.append("hostel_rooms", JSON.stringify(data.roomDetail));
+    
+    console.log(roomDetail)
 
     data.hostelImage.forEach((image) => {
       formData.append("hostel_images", image);
@@ -111,6 +194,7 @@ const CreateNewHostel = () => {
         onSubmit={handleSubmit}
       >
         <Grid container spacing={1}>
+
           <Grid item xs={12} sm={3}>
             <InputLabel
               sx={{
@@ -147,20 +231,55 @@ const CreateNewHostel = () => {
               Hostel Address
             </InputLabel>
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="Street"
-              {...methods.register("hostelAddressStreet")}
-            />
-           </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="City"
-              {...methods.register("hostelAddressCity")}
-            />
-          </Grid>
+          <Grid item xs={10} sm={8} lg={4}>
+              <TextField
+                fullWidth
+                label="Street"
+                {...methods.register("street")}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4} lg={4}>
+              <TextField
+                fullWidth
+                label="Postal Code"
+                onChange={(e) => {
+                  handlePostalCodeChange(e);
+                }}
+              />
+            </Grid>
+
+            {cityNameVisible && (
+              <>
+                <Grid item xs={12} sm={6} lg={4} md={4} marginLeft={"21pc"}>
+                  <TextField
+                    fullWidth
+                    label="City"
+                    value={
+                      addressDetail && addressDetail.length > 0
+                        ? addressDetail[0].city_name
+                        : ""
+                    }
+                  />
+                </Grid>
+              </>
+            )}
+
+            {stateNameVisible && (
+              <>
+                <Grid item xs={12} sm={6} lg={4} md={4}>
+                  <TextField
+                    fullWidth
+                    label="State"
+                    value={
+                      addressDetail && addressDetail.length > 0
+                        ? addressDetail[0].state_name
+                        : ""
+                    }
+                  />
+                </Grid>
+              </>
+            )}
 
           <Grid item xs={12} sm={3}>
             <InputLabel
@@ -198,7 +317,7 @@ const CreateNewHostel = () => {
               Owner Email Address
             </InputLabel>
           </Grid>
-          <Grid item xs={12} sm={8} lg={2} sx={{ marginRight: "20px" }}>
+          <Grid item xs={12} sm={8} lg={2} marginRight={14}>
             <TextField
               fullWidth
               required
@@ -217,7 +336,7 @@ const CreateNewHostel = () => {
             <InputLabel
               sx={{
                 display: "flex",
-                justifyContent: "flexStart",
+                justifyContent: "center",
                 fontWeight: 700,
               }}
             >
@@ -279,6 +398,42 @@ const CreateNewHostel = () => {
                 )}
               />
             </FormControl>
+          </Grid>
+          
+
+          <Grid item xs={12} sm={3}>
+            <InputLabel
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                fontWeight: 700,
+              }}
+            >
+              Room Details
+            </InputLabel>
+          </Grid>
+          <Grid item xs={12} sm={8}>
+          <FormControl>
+            <TextField
+              label="Number of Rooms"
+              {...methods.register("numberOfRooms")}
+            />
+            <FormGroup>
+              <FormLabel component="legend">Room Capacity</FormLabel>
+              {roomCapacity.map((roomCapacity) => (
+                <FormControlLabel
+                  key={roomCapacity.id}
+                  control={
+                    <Checkbox
+                      checked={selectedRoomCapacity.includes(roomCapacity.id)}
+                      onChange={() => handleRoomCapacityToggle(roomCapacity.id)}
+                    />
+                  }
+                  label={roomCapacity.label}
+                />
+              ))}
+            </FormGroup>
+          </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={3}>

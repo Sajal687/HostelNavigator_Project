@@ -34,6 +34,7 @@ const HostelList = () => {
       try {
         const response = await axios.get("http://localhost:8080/hostels");
         const { data } = response.data;
+        console.log(data)
         convertBufferToBase64(data);
       } catch (err) {
         console.log("Something went wrong");
@@ -99,8 +100,10 @@ const HostelList = () => {
             address={hostel.hostel_address}
             rent={hostel.hostel_rent}
             rating={hostel.hostel_rating}
-            image={hostel.hostel_img[1]}
+            image={hostel.hostel_img}
+            ownerName={hostel.owner_name}
             contactPhn={hostel.owner_phone_number}
+            email={hostel.owner_email}
             allowGender={hostel.hostel_gender_type}
             facilities={hostel.hostel_facilities}
           />

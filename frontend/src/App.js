@@ -1,7 +1,12 @@
 import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ShowSearchResult from "./components/ShowSearchResult";
 import CreateNewHostel from "./components/CreateNewHostel";
 import HostelList from './components/HostelList';
+import ShowHostelDetails from './components/ShowHostelDetails';
+import Login from "./components/Login";
+import Register from "./components/Register";
+
 
 // import Home from './pages/Home';
 // import Hostels from './components/Hostels';
@@ -13,13 +18,15 @@ import HostelList from './components/HostelList';
 
 const App = () => {
   return (
-    <>
-      {/* <h1>This is App components</h1> */}
-      {/* <ShowSearchResult/> */}
-      {/* <CreateNewHostel/> */}
-      <HostelList/>
-      {/* <ImageUpload/> */}
-    </>
+    <Router>
+      <Routes>
+        <Route exact path="/" element={<HostelList/>} />
+        <Route path="/hosteldetails" element={<ShowHostelDetails/>} />
+        <Route path="/createhostel" element={<CreateNewHostel/>} />
+        <Route path="/login" element={<Login/>} />
+        <Route path="/register" element={<Register/>} />
+      </Routes>
+    </Router>
   );
 };
 

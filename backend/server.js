@@ -7,9 +7,7 @@ require('dotenv').config();
 const hostelRoutes = require("./routes/hostelRoutes");
 const userRoutes = require("./routes/userRoutes");
 
-
 const port = process.env.PORT || 8080;
-
 
 app.use(cors());
 app.use(express.json());
@@ -27,6 +25,13 @@ const connnectDB = async () => {
 };
 
 connnectDB();
+
+app.get('/api/env', (req, res) => {
+  const environmentVariables = {
+    POSTALCODE_API_KEY: process.env.REACT_APP_POSTALCODE_API_KEY,
+  };
+  res.json(environmentVariables);
+});
 
 app.use(hostelRoutes);
 app.use(userRoutes);

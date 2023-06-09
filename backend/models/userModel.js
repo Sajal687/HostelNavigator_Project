@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  user_id: {
-    type: String,
-    required: true,
+  authUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "AuthUser",
   },
   name: {
     type: String,
@@ -24,9 +24,22 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  user_hostel_id: {
-    type: String,
+  current_hostel: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Hostel',
   },
+  previous_hostels: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Hostel',
+    }
+  ],
+  feedbacks: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Feedback',
+    }
+  ],
   created_at: {
     type: Date,
     default: Date.now,

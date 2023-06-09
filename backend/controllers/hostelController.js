@@ -67,6 +67,7 @@ const getHostelById = async (req, res) => {
   }
 };
 
+
 const createHostel = async (req, res) => {
   try {
     const {
@@ -77,14 +78,17 @@ const createHostel = async (req, res) => {
       owner_phone_number,
       owner_email,
     } = req.body;
-
-    const { hostel_address } = req.body;
-    const parsedHostelAddress = JSON.parse(hostel_address);
-
+    
     const hostel_facilities = req.body.hostel_facilities || [];
+
+
+    const { hostel_address, hostel_rooms } = req.body;
+    const parsedHostelAddress = JSON.parse(hostel_address);
+    const parsedRoomDetail = JSON.parse(hostel_rooms);
+
     const hostel_rating = req.body.hostel_rating || 0;
     const hostel_images = req.files ? req.files : [];
-  
+
     if (
       !hostel_name ||
       !hostel_address ||
@@ -118,8 +122,8 @@ const createHostel = async (req, res) => {
     const hostelImg = [];
     hostel_images.forEach((image) => {
       hostelImg.push({
-       data: fs.readFileSync(path.join(__dirname, "uploads", image.filename)),
-       contentType: image.mimetype,
+        data: fs.readFileSync(path.join(__dirname, "uploads", image.filename)),
+        contentType: image.mimetype,
       });
     });
 
@@ -135,6 +139,7 @@ const createHostel = async (req, res) => {
       owner_name,
       owner_phone_number,
       owner_email,
+      hostel_rooms: parsedRoomDetail, 
     });
 
     await newHostel.save();
@@ -146,6 +151,7 @@ const createHostel = async (req, res) => {
     res.status(400).json({ message: "Something went wrong" });
   }
 };
+
 
 
 const updateHostel = async (req, res, next) => {
