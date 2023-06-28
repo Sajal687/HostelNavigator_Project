@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable-next-line react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
+
+import React, { useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Box, Typography, Button, Container, Grid , Card , CardContent,} from "@mui/material";
 import Carousel from "react-material-ui-carousel";

@@ -1,7 +1,7 @@
 import React , {createContext , useState} from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import ShowSearchResult from "./components/ShowSearchResult";
+// import ShowSearchResult from "./components/ShowSearchResult";
 import CreateNewHostel from "./components/CreateNewHostel";
 import HostelList from './components/HostelList';
 import ShowHostelDetails from './components/ShowHostelDetails';

@@ -1,3 +1,4 @@
+/* eslint-disable-next-line react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -6,9 +7,7 @@ import {
   Grid,
   Card,
   CardContent,
-  CardMedia,
   Button,
-  IconButton,
 } from "@mui/material";
 // import { Edit } from "@mui/icons-material";
 import Carousel from "react-material-ui-carousel";
@@ -92,10 +91,10 @@ const OwnerDashboard = () => {
   };
 
 
-  const handleEditField = (field) => {
-    // Handle edit functionality for the field
-    console.log(`Edit ${field}`);
-  };
+  // const handleEditField = (field) => {
+  //   // Handle edit functionality for the field
+  //   console.log(`Edit ${field}`);
+  // };
 
   const handleAcceptRequest = async (bookingId) => {
     console.log(`Accept request with ID: ${bookingId}`);
@@ -150,7 +149,7 @@ const OwnerDashboard = () => {
                 <img
                   key={index}
                   src={`data:image/jpeg;base64,${image}`}
-                  alt={`Hostel Image ${index + 1}`}
+                  alt={`${index + 1}`}
                  style={{height: "300px",objectFit: "cover", width:"100%"}}
                />
                ))}

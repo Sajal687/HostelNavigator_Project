@@ -24,7 +24,7 @@ const ShowHostelDetails = () => {
             <img
               key={index}
               src={`data:image/jpeg;base64,${image}`}
-              alt={`Hostel Image ${index + 1}`}
+              alt={`${index + 1}`}
               style={{height: "300px",objectFit: "cover", width:"100%"}}
             />
           ))}

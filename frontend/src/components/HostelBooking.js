@@ -1,3 +1,4 @@
+/* eslint-disable-next-line react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast"
@@ -16,7 +17,6 @@ import {
   CardContent,
   CardMedia,
   InputLabel,
-  FormControl,
 } from "@mui/material";
 
 const HostelBooking = () => {
@@ -34,7 +34,6 @@ const HostelBooking = () => {
   
   const {
     handleSubmit,
-    control,
     register,
     formState: { errors },
   } = useForm();

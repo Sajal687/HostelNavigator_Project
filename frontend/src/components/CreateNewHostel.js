@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 import axios from "axios";
 import React, { useState, useEffect, useContext } from "react";
 import toast from "react-hot-toast";
@@ -64,13 +66,13 @@ const MenuProps = {
 
 const CreateNewHostel = () => {
   const methods = useForm();
-  const [message, setMessage] = useState("");
   const [envVariable, setEnvVariable] = useState(null);
   const [addressDetail, setAddressDetail] = useState([]);
   const [cityNameVisible, setCityNameVisible] = useState(false);
   const [stateNameVisible, setStateNameVisible] = useState(false);
   const [selectedRoomCapacity, setSelectedRoomCapacity] = useState([]);
 
+ 
   const { loggedIn, setLoggedIn } = useContext(AuthUserContext);
 
   const location = useLocation();
@@ -184,7 +186,6 @@ const CreateNewHostel = () => {
         toast.success(
           "Hooray! Your hostel details have been saved and are now available for booking."
         );
-        setMessage("User created successfully");
         localStorage.setItem("token", response.data.token);
         setLoggedIn(true);
         navigate("/ownerdashboard");
@@ -193,11 +194,9 @@ const CreateNewHostel = () => {
           "Oh no! Something went wrong while saving your hostel details. Please double-check your information and attempt to submit again."
         );
         navigate("/registerowner");
-        setMessage("Some error occurred");
       }
     } catch (err) {
       console.log(err);
-      setMessage("Some error occurred");
     }
   });
 
