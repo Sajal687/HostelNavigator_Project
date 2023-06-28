@@ -10,8 +10,9 @@ import {
   Button,
   IconButton,
 } from "@mui/material";
-import { Edit } from "@mui/icons-material";
+// import { Edit } from "@mui/icons-material";
 import Carousel from "react-material-ui-carousel";
+import {BASE_URL} from '../services/helper';
 
 
 const OwnerDashboard = () => {
@@ -32,7 +33,7 @@ const OwnerDashboard = () => {
 
         if (token) {
           const response = await axios.get(
-            `http://localhost:8080/hostels/${id}`,
+            `${BASE_URL}/hostels/${id}`,
             {
               headers: {
                 authorization: token,
@@ -42,7 +43,7 @@ const OwnerDashboard = () => {
           const { data } = response.data;
           convertBufferToBase64(data);
 
-          const res = await axios.get(`http://localhost:8080/bookings/${id}`, {
+          const res = await axios.get(`${BASE_URL}/bookings/${id}`, {
             headers: {
               authorization: token,
             },
@@ -101,7 +102,7 @@ const OwnerDashboard = () => {
     try {
       const response = await axios({
         method: "put",
-        url: `http://localhost:8080/bookings/${bookingId}`,
+        url: `${BASE_URL}/bookings/${bookingId}`,
         data: {
           bookingId: bookingId,
           status: "accept",
@@ -119,7 +120,7 @@ const OwnerDashboard = () => {
     try {
       const response = await axios({
         method: "put",
-        url: `http://localhost:8080/bookings/${bookingId}`,
+        url: `${BASE_URL}/bookings/${bookingId}`,
         data: {
           bookingId: bookingId,
           status: "reject",

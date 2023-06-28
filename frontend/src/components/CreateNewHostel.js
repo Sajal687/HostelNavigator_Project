@@ -5,6 +5,7 @@ import ImageUpload from "./ImageUpload";
 import { FormProvider, useForm, Controller } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthUserContext } from "../App";
+import {BASE_URL} from '../services/helper';
 
 import {
   Grid,
@@ -80,7 +81,7 @@ const CreateNewHostel = () => {
   useEffect(() => {
     const fetchEnvrionmentVariable = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/env");
+        const response = await axios.get(`${BASE_URL}/api/env`);
         console.log(response.data)
         setEnvVariable(response.data);
       } catch (error) {
@@ -169,7 +170,7 @@ const CreateNewHostel = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/hostels",
+        `${BASE_URL}/hostels`,
         formData,
         {
           headers: {

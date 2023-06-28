@@ -1,12 +1,12 @@
 {
-  "name": "truefriend_project",
+  "name": "hostel_navigator_project",
   "version": "1.0.0",
-  "description": "Web application which provides details of hostel and mess in nearby college area.",
-  "main": "backend/server.js",
+  "description": "Web application which provides details of hostel in nearby college area.",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
     "frontend": "cd frontend && npm install && npm start"
   },
   "repository": {

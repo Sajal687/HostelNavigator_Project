@@ -32,7 +32,7 @@ const Hostel = ({
   const [isFavorite, setIsFavorite] = useState(false);
   const [userDetails, setUserDetails] = useState({});
   const navigate = useNavigate();
-
+  
   useEffect(()=>{
     const token = localStorage.getItem("token");
     if(token){

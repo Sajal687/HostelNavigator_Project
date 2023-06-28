@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Hostel from "./Hostel";
 import axios from "axios";
 import { Box, Typography, styled } from "@mui/material";
+import {BASE_URL} from '../services/helper';
 
 const Heading = styled(Typography)`
   font-size: 2.5rem;
@@ -33,7 +34,7 @@ const HostelList = () => {
   useEffect(() => {
     const fetchHostels = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/hostels");
+        const response = await axios.get(`${BASE_URL}/hostels`);
         const { data } = response.data;
         convertBufferToBase64(data);
       } catch (err) {

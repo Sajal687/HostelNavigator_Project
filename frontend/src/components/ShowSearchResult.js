@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SearchHostel from "./SearchHostel";
 import axios from "axios";
+import { BASE_URL } from "../services/helper";
 
 const ShowSearchResult = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -8,7 +9,7 @@ const ShowSearchResult = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const response = await axios.get("http://localhost:8080/hostels");
+      const response = await axios.get(`${BASE_URL}/hostels`);
       console.log(response.data.data[0].hostel_address.city);
       const hostelName = response.data.data.map((val, index) => {
         return val.hostel_name;

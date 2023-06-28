@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast"
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import {BASE_URL} from '../services/helper';
 import {
   Box,
   Typography,
@@ -30,7 +31,7 @@ const HostelBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const hostelDetails = location.state;
-
+  
   const {
     handleSubmit,
     control,
@@ -52,7 +53,7 @@ const HostelBooking = () => {
       }
       
       if (token) {
-          const response = await axios.get(`http://localhost:8080/users/${userId}`, {
+          const response = await axios.get(`${BASE_URL}/users/${userId}`, {
           headers: {
             authorization: token,
           },
@@ -94,7 +95,7 @@ const HostelBooking = () => {
 
       try {
         const response = await axios.post(
-          "http://localhost:8080/bookings",
+          `${BASE_URL}/bookings`,
           formData,
           {
             headers: {

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import axios from "axios";
+import {BASE_URL} from '../../services/helper';
 
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -52,7 +53,7 @@ export default function SignUp() {
       });
     } else {
       try {
-        const response = await axios.post("http://localhost:8080/register", {
+        const response = await axios.post(`${BASE_URL}/register`, {
           email_address: data.email,
           password: data.password,
           name: `${data.firstName} ${data.lastName}`,

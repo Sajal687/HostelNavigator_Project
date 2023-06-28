@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport(
 const sendEmailNotification = (email, message) => {
   const mailOptions = {
     from: "hostelbuddyservices@gmail.com",
-    to: "sharmahit991@gmail.com",
+    to: "nemasajal781@gmail.com",
     subject: "New Booking Request",
     text: message,
   };

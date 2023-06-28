@@ -19,6 +19,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Popper from "@mui/material/Popper";
 import logo from "../../assets/logo7.png";
+import { BASE_URL } from "../../services/helper";
 
 import { useNavigate } from "react-router-dom";
 import { ActivePageContext, AuthUserContext } from "../../App";
@@ -36,6 +37,7 @@ function NavigationBar() {
   const [showMessages, setShowMessages] = useState(false);
   const [activePage, setActivePage] = useState(pages[0]);
   const anchorRef = useRef(null);
+
   
   const {loggedIn , setLoggedIn} = useContext(AuthUserContext);
   const {removeActiveStyle , setRemoveActiveStyle} = useContext(ActivePageContext);
@@ -148,7 +150,7 @@ function NavigationBar() {
         } else {
           setLoggedIn(true);
           const fetchNotification = async () => {
-            const res = await axios.get("http://localhost:8080/notification", {
+            const res = await axios.get(`${BASE_URL}/notification`, {
               params: {
                 id: decodedPayload.id,
                 userType: decodedPayload.userType,
@@ -178,7 +180,7 @@ function NavigationBar() {
   const handleMarkAllRead = async () => {
     notifications.map((notification) => notification.markRead = "yes")
     setCountNotification(0);
-    countNotification && await axios.put(`http://localhost:8080/updateReadStatus/${notifications[0].receiver}`);
+    countNotification && await axios.put(`${BASE_URL}/updateReadStatus/${notifications[0].receiver}`);
   }
 
   return (

@@ -1,8 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import {BASE_URL} from '../../services/helper';
+import SideImage from '../../assets/loginPageImage.jpg';
 
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -28,7 +30,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { blue } from "@mui/material/colors";
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { AuthUserContext } from "../../App";
+import { AuthUserContext , ActivePageContext } from "../../App";
 
 const defaultTheme = createTheme();
 
@@ -50,10 +52,15 @@ const Login = () => {
   let userType = location.state[1].userType;
 
   const { loggedIn, setLoggedIn } = useContext(AuthUserContext);
+  const {removeActiveStyle , setRemoveActiveStyle} = useContext(ActivePageContext);
+
+  useEffect(()=>{
+    setRemoveActiveStyle(true);
+  })
 
   const handleLogin = async (data) => {
     try {
-      const response = await axios.post("http://localhost:8080/login", {
+      const response = await axios.post(`${BASE_URL}/login`, {
         useremail: data.email,
         password: data.password,
       });
@@ -117,7 +124,7 @@ const Login = () => {
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      <Grid container component="main" sx={{ height: "100vh" }}>
+      <Grid container component="main" sx={{ height: "90vh" }}>
         <CssBaseline />
         <Grid
           item
@@ -125,8 +132,8 @@ const Login = () => {
           sm={4}
           md={7}
           sx={{
-            backgroundImage:
-              "url(https://source.unsplash.com/random?wallpapers)",
+            backgroundImage: `url(${SideImage})`,
+            height:"90vh",
             backgroundRepeat: "no-repeat",
             backgroundColor: (t) =>
               t.palette.mode === "light"
