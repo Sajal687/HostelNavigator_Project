@@ -1,4 +1,3 @@
-/* eslint-disable-next-line react-hooks/exhaustive-deps */
 import React, { useState , useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -33,6 +32,7 @@ const Hostel = ({
   const [isFavorite, setIsFavorite] = useState(false);
   const [userDetails, setUserDetails] = useState({});
   const navigate = useNavigate();
+  const onlyOneTime = "Yes";
   
   useEffect(()=>{
     const token = localStorage.getItem("token");
@@ -47,7 +47,7 @@ const Hostel = ({
     }
     setUserDetails(decodedPayload);
   }
-  },[]);
+  },[onlyOneTime]);
 
  
   const handleToggleFavorite = () => {

@@ -1,4 +1,3 @@
-/* eslint-disable-next-line react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import Hostel from "./Hostel";
 import axios from "axios";
@@ -31,6 +30,8 @@ const Heading = styled(Typography)`
   
 const HostelList = () => {
   const [hostels, setHostels] = useState(null);
+  
+  const onlyOneTime = "Yes";
 
   useEffect(() => {
     const fetchHostels = async () => {
@@ -44,7 +45,7 @@ const HostelList = () => {
     };
 
     fetchHostels();
-  }, []);
+  }, [onlyOneTime]);
 
   const convertBufferToBase64 = (data) => {
     const updatedData = data.map((hostel) => {

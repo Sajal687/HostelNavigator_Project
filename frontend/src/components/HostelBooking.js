@@ -1,4 +1,3 @@
-/* eslint-disable-next-line react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast"
@@ -32,6 +31,8 @@ const HostelBooking = () => {
   const location = useLocation();
   const hostelDetails = location.state;
   
+  const onlyOneTime = "Yes";
+
   const {
     handleSubmit,
     register,
@@ -72,7 +73,7 @@ const HostelBooking = () => {
         };
       };
       userData();
-  },[]);
+  },[onlyOneTime]);
 
   const handleBookingSubmission = handleSubmit(async (data) => {
     const formData = new FormData();
