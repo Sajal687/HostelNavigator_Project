@@ -1,7 +1,10 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import toast from "react-hot-toast";
 import ImageUpload from "./ImageUpload";
 import { FormProvider, useForm, Controller } from "react-hook-form";
+import { useNavigate, useLocation } from "react-router-dom";
+import { AuthUserContext } from "../App";
 
 import {
   Grid,
@@ -24,7 +27,6 @@ import {
   OutlinedInput,
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { useTheme } from "@mui/material/styles";
 
 const roomCapacity = [
   { id: "single", label: "Single" },
@@ -68,10 +70,18 @@ const CreateNewHostel = () => {
   const [stateNameVisible, setStateNameVisible] = useState(false);
   const [selectedRoomCapacity, setSelectedRoomCapacity] = useState([]);
 
+  const { loggedIn, setLoggedIn } = useContext(AuthUserContext);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { firstName, lastName, ownerEmail, ownerPhnNumber, password } =
+    location.state;
+
   useEffect(() => {
     const fetchEnvrionmentVariable = async () => {
       try {
         const response = await axios.get("http://localhost:8080/api/env");
+        console.log(response.data)
         setEnvVariable(response.data);
       } catch (error) {
         console.error("Error fetching environment variables:", error);
@@ -124,10 +134,10 @@ const CreateNewHostel = () => {
     formData.append("hostel_name", data.hostelName);
     formData.append("hostel_gender_type", data.allowGender);
     formData.append("hostel_rent", data.hostelRent);
-    formData.append("owner_name", data.ownerName);
-    formData.append("owner_phone_number", data.ownerPhnNumber);
-    formData.append("owner_email", data.ownerEmail);
-
+    formData.append("owner_name", `${firstName} ${lastName}`);
+    formData.append("owner_phone_number", ownerPhnNumber);
+    formData.append("owner_email", ownerEmail);
+    formData.append("password", password);
 
     data.hostelFacilities.forEach((facility) => {
       formData.append("hostel_facilities", facility);
@@ -135,7 +145,7 @@ const CreateNewHostel = () => {
 
     const { pincode, city_name, state_name } = addressDetail[0];
 
-    console.log( pincode, city_name, state_name)
+    console.log(pincode, city_name, state_name);
 
     const hostelAddress = {
       street: data.street,
@@ -146,16 +156,12 @@ const CreateNewHostel = () => {
     data.hostelAddress = hostelAddress;
     formData.append("hostel_address", JSON.stringify(data.hostelAddress));
 
-    
-    
     const roomDetail = {
-      room_number : data.numberOfRooms,
-      room_capacity : selectedRoomCapacity
+      room_number: data.numberOfRooms,
+      room_capacity: selectedRoomCapacity,
     };
     data.roomDetail = roomDetail;
     formData.append("hostel_rooms", JSON.stringify(data.roomDetail));
-    
-    console.log(roomDetail)
 
     data.hostelImage.forEach((image) => {
       formData.append("hostel_images", image);
@@ -172,11 +178,20 @@ const CreateNewHostel = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         methods.reset();
-        console.log("Hello From Server");
+        toast.success(
+          "Hooray! Your hostel details have been saved and are now available for booking."
+        );
         setMessage("User created successfully");
+        localStorage.setItem("token", response.data.token);
+        setLoggedIn(true);
+        navigate("/ownerdashboard");
       } else {
+        toast.error(
+          "Oh no! Something went wrong while saving your hostel details. Please double-check your information and attempt to submit again."
+        );
+        navigate("/registerowner");
         setMessage("Some error occurred");
       }
     } catch (err) {
@@ -193,8 +208,13 @@ const CreateNewHostel = () => {
         autoComplete="off"
         onSubmit={handleSubmit}
       >
-        <Grid container spacing={1}>
-
+        <Grid
+          container
+          spacing={2}
+          mt={2}
+          px={2}
+          sx={{ justifyContent: "center" }}
+        >
           <Grid item xs={12} sm={3}>
             <InputLabel
               sx={{
@@ -203,7 +223,7 @@ const CreateNewHostel = () => {
                 fontWeight: 700,
               }}
             >
-              Hostel Name
+              Hostel Name :
             </InputLabel>
           </Grid>
           <Grid item xs={10} sm={8}>
@@ -228,109 +248,60 @@ const CreateNewHostel = () => {
                 fontWeight: 700,
               }}
             >
-              Hostel Address
+              Hostel Address :
             </InputLabel>
           </Grid>
-          <Grid item xs={10} sm={8} lg={4}>
-              <TextField
-                fullWidth
-                label="Street"
-                {...methods.register("street")}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4} lg={4}>
-              <TextField
-                fullWidth
-                label="Postal Code"
-                onChange={(e) => {
-                  handlePostalCodeChange(e);
-                }}
-              />
-            </Grid>
-
-            {cityNameVisible && (
-              <>
-                <Grid item xs={12} sm={6} lg={4} md={4} marginLeft={"21pc"}>
-                  <TextField
-                    fullWidth
-                    label="City"
-                    value={
-                      addressDetail && addressDetail.length > 0
-                        ? addressDetail[0].city_name
-                        : ""
-                    }
-                  />
-                </Grid>
-              </>
-            )}
-
-            {stateNameVisible && (
-              <>
-                <Grid item xs={12} sm={6} lg={4} md={4}>
-                  <TextField
-                    fullWidth
-                    label="State"
-                    value={
-                      addressDetail && addressDetail.length > 0
-                        ? addressDetail[0].state_name
-                        : ""
-                    }
-                  />
-                </Grid>
-              </>
-            )}
-
-          <Grid item xs={12} sm={3}>
-            <InputLabel
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                fontWeight: 700,
-              }}
-            >
-              Hostel Owner Name
-            </InputLabel>
-          </Grid>
-          <Grid item xs={12} sm={8}>
+          <Grid item xs={10} sm={4} lg={4} md={4}>
             <TextField
               fullWidth
-              required
-              id="ownerName"
-              name="ownerName"
-              size="small"
-              autoComplete="off"
-              variant="outlined"
-              label="Owner Name"
-              {...methods.register("ownerName")}
+              label="Street"
+              {...methods.register("street")}
             />
           </Grid>
 
-          <Grid item xs={12} sm={3}>
-            <InputLabel
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                fontWeight: 700,
-              }}
-            >
-              Owner Email Address
-            </InputLabel>
-          </Grid>
-          <Grid item xs={12} sm={8} lg={2} marginRight={14}>
+          <Grid item xs={10} sm={4} lg={4} md={4}>
             <TextField
               fullWidth
-              required
-              id="ownerEmail"
-              name="ownerEmail"
-              size="small"
-              autoComplete="off"
-              variant="outlined"
-              label="Owner Email"
-              type="email"
-              {...methods.register("ownerEmail")}
+              label="Postal Code"
+              onChange={(e) => {
+                handlePostalCodeChange(e);
+              }}
             />
           </Grid>
+
+          {cityNameVisible && <Grid xs={12} sm={3}></Grid>}
+
+          {cityNameVisible && (
+            <>
+              <Grid item xs={10} sm={4} lg={4} md={4}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={
+                    addressDetail && addressDetail.length > 0
+                      ? addressDetail[0].city_name
+                      : ""
+                  }
+                />
+              </Grid>
+            </>
+          )}
+
+          {stateNameVisible && (
+            <>
+              <Grid item xs={10} sm={4} lg={4} md={4}>
+                <TextField
+                  fullWidth
+                  label="State"
+                  value={
+                    addressDetail && addressDetail.length > 0
+                      ? addressDetail[0].state_name
+                      : ""
+                  }
+                />
+              </Grid>
+            </>
+          )}
 
           <Grid item xs={12} sm={3}>
             <InputLabel
@@ -340,32 +311,7 @@ const CreateNewHostel = () => {
                 fontWeight: 700,
               }}
             >
-              Owner Phone Number
-            </InputLabel>
-          </Grid>
-          <Grid item xs={12} sm={8} lg={2}>
-            <TextField
-              fullWidth
-              required
-              id="ownerPhnNumber"
-              name="ownerPhnNumber"
-              size="small"
-              autoComplete="off"
-              variant="outlined"
-              label="Owner Phone Number"
-              {...methods.register("ownerPhnNumber")}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={3}>
-            <InputLabel
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                fontWeight: 700,
-              }}
-            >
-              Allowed Gender
+              Allowed Gender :
             </InputLabel>
           </Grid>
           <Grid item xs={12} sm={8}>
@@ -399,42 +345,7 @@ const CreateNewHostel = () => {
               />
             </FormControl>
           </Grid>
-          
 
-          <Grid item xs={12} sm={3}>
-            <InputLabel
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                fontWeight: 700,
-              }}
-            >
-              Room Details
-            </InputLabel>
-          </Grid>
-          <Grid item xs={12} sm={8}>
-          <FormControl>
-            <TextField
-              label="Number of Rooms"
-              {...methods.register("numberOfRooms")}
-            />
-            <FormGroup>
-              <FormLabel component="legend">Room Capacity</FormLabel>
-              {roomCapacity.map((roomCapacity) => (
-                <FormControlLabel
-                  key={roomCapacity.id}
-                  control={
-                    <Checkbox
-                      checked={selectedRoomCapacity.includes(roomCapacity.id)}
-                      onChange={() => handleRoomCapacityToggle(roomCapacity.id)}
-                    />
-                  }
-                  label={roomCapacity.label}
-                />
-              ))}
-            </FormGroup>
-          </FormControl>
-          </Grid>
 
           <Grid item xs={12} sm={3}>
             <InputLabel
@@ -481,7 +392,7 @@ const CreateNewHostel = () => {
                 fontWeight: 700,
               }}
             >
-              Hostel Facilities
+              Hostel Facilities :
             </InputLabel>
           </Grid>
           <Grid item xs={12} sm={8}>
@@ -540,7 +451,53 @@ const CreateNewHostel = () => {
                 fontWeight: 700,
               }}
             >
-              Hostel Images
+              Room Details
+            </InputLabel>
+          </Grid>
+          <Grid items sm={10} sx={{ textAlign: "center" }} py={2}>
+            <FormControl sx={{ width: 600 }}>
+              <TextField
+                label="Total Number of Rooms"
+                {...methods.register("numberOfRooms")}
+              />
+              <FormGroup>
+                <FormLabel
+                  component="legend"
+                  sx={{
+                    fontWeight: "bold",
+                    textAlign: "left",
+                    paddingTop: "10px",
+                  }}
+                >
+                  Room Capacity :
+                </FormLabel>
+                {roomCapacity.map((roomCapacity) => (
+                  <FormControlLabel
+                    key={roomCapacity.id}
+                    control={
+                      <Checkbox
+                        checked={selectedRoomCapacity.includes(roomCapacity.id)}
+                        onChange={() =>
+                          handleRoomCapacityToggle(roomCapacity.id)
+                        }
+                      />
+                    }
+                    label={roomCapacity.label}
+                  />
+                ))}
+              </FormGroup>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={3}>
+            <InputLabel
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                fontWeight: 700,
+              }}
+            >
+              Hostel Images :
             </InputLabel>
           </Grid>
           <Grid item xs={12} sm={8}>

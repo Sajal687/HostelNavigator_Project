@@ -5,7 +5,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 const hostelRoutes = require("./routes/hostelRoutes");
-const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./routes/userRoutes");               
+const bookingRoutes = require("./routes/bookingRoutes");               
+const notificationRoutes = require("./routes/notificationRoutes");               
 
 const port = process.env.PORT || 8080;
 
@@ -35,6 +37,8 @@ app.get('/api/env', (req, res) => {
 
 app.use(hostelRoutes);
 app.use(userRoutes);
+app.use(bookingRoutes);
+app.use(notificationRoutes);
 
 app.listen(port, () => {
   console.log(`App is Listen on PORT 8080`);

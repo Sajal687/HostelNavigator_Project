@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getAllUsers,
   getUserById,
+  getUserByAuthUserId,
   createUser,
   login,
   authenticate,
@@ -18,6 +19,7 @@ router.post('/register', createUser);
 // Protected routes
 router.get("/users", getAllUsers);
 router.get("/users/:id", getUserById);
+router.get('/users/authuser/:id', authenticate , getUserByAuthUserId);
 router.put("/users/:id",authenticate , updateUserById);
 router.delete("/users/:_id", authenticate , deleteUserById);
 

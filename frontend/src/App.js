@@ -1,32 +1,52 @@
-import React from "react";
+import React , {createContext , useState} from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import ShowSearchResult from "./components/ShowSearchResult";
 import CreateNewHostel from "./components/CreateNewHostel";
 import HostelList from './components/HostelList';
 import ShowHostelDetails from './components/ShowHostelDetails';
-import Login from "./components/Login";
-import Register from "./components/Register";
+import Login from "./components/pages/Login";
+import HostelBooking from "./components/HostelBooking";
+import OwnerDashboard from "./components/OwnerDashboard";
+import Home from './components/pages/Home';
+import Register from './components/pages/Register';
+import NavigationBar from "./components/pages/NavigationBar";
+import ToasterNotification from "./components/notification/ToasterNotification";
+import AboutUs from "./components/pages/About";
+import FAQs from "./components/pages/FAQs";
+import ContactUs from "./components/pages/Contact";
 
-
-// import Home from './pages/Home';
-// import Hostels from './components/Hostels';
-// import OwnerDashboard from './components/OwnerDashboard';
-// import Feedback from './components/Feedback';
-// import AddHostel from './components/AddHostel';
-// import About from './pages/About';
-// import NavigationBar from "./components/NavigationBar";
+export const AuthUserContext = createContext();
+export const ActivePageContext = createContext();
 
 const App = () => {
+  const [loggedIn , setLoggedIn] = useState(false);
+  const [removeActiveStyle , setRemoveActiveStyle] = useState(false);
+
   return (
+    <>
     <Router>
+    <ToasterNotification/>
+    <AuthUserContext.Provider value={{loggedIn , setLoggedIn}}>
+    <ActivePageContext.Provider value={{removeActiveStyle , setRemoveActiveStyle}}>
+    <NavigationBar/>
       <Routes>
-        <Route exact path="/" element={<HostelList/>} />
-        <Route path="/hosteldetails" element={<ShowHostelDetails/>} />
-        <Route path="/createhostel" element={<CreateNewHostel/>} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/register" element={<Register/>} />
+        <Route exact path='/' element={<Home/>} />
+        <Route exact path="/hostellist" element={<HostelList/>} />
+        <Route exact path="/hosteldetails" element={<ShowHostelDetails/>} />
+        <Route exact path="/createhostel" element={<CreateNewHostel/>} />
+        <Route exact path="/login" element={<Login/>} />
+        <Route exact path="/register" element={<Register/>} />
+        <Route exact path="/bookinghostel" element={<HostelBooking/>} />
+        <Route exact path="/ownerdashboard" element={<OwnerDashboard/>} />
+        <Route exact path="/about" element={<AboutUs/>} />
+        <Route exact path="/faqs" element={<FAQs/>} />
+        <Route exact path="/contact" element={<ContactUs/>} />
       </Routes>
+      </ActivePageContext.Provider>
+    </AuthUserContext.Provider>
     </Router>
+    </>
   );
 };
 

@@ -6,7 +6,8 @@ import { Box, Typography, styled } from "@mui/material";
 const Heading = styled(Typography)`
   font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.2rem;
   animation: slideIn 1s ease-in-out;
   
   @keyframes slideIn {
@@ -34,7 +35,6 @@ const HostelList = () => {
       try {
         const response = await axios.get("http://localhost:8080/hostels");
         const { data } = response.data;
-        console.log(data)
         convertBufferToBase64(data);
       } catch (err) {
         console.log("Something went wrong");
@@ -96,6 +96,7 @@ const HostelList = () => {
         hostels.map((hostel) => (
           <Hostel
             key={hostel.id}
+            hostel_id = {hostel.hostel_id}
             name={hostel.hostel_name}
             address={hostel.hostel_address}
             rent={hostel.hostel_rent}

@@ -1,4 +1,8 @@
 const { Hostel } = require("../models/hostelModel");
+const {AuthUser} = require("../models/authuserModel");
+const {Role} = require("../models/roleModel");
+const jwt = require('jsonwebtoken');
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -56,6 +60,7 @@ const getAllHostel = async (req, res) => {
 const getHostelById = async (req, res) => {
   try {
     const id = req.params.id;
+    console.log(id);
     const data = await Hostel.findById(id);
     if (!data) {
       return res.status(404).json({ message: "Hostel not found" });
@@ -77,6 +82,7 @@ const createHostel = async (req, res) => {
       owner_name,
       owner_phone_number,
       owner_email,
+      password,
     } = req.body;
     
     const hostel_facilities = req.body.hostel_facilities || [];
@@ -127,7 +133,22 @@ const createHostel = async (req, res) => {
       });
     });
 
+
+    const roleName = "hostelOwner";
+    const newUserRole = new Role({
+      rolename: roleName,
+    });
+    await newUserRole.save();
+
+    const newHostelOwnerAuth = new AuthUser({
+      useremail: owner_email,
+      password,
+      role: newUserRole._id,
+    })
+    await newHostelOwnerAuth.save();
+
     const newHostel = new Hostel({
+      authUser: newHostelOwnerAuth._id,
       hostel_id,
       hostel_name,
       hostel_address: parsedHostelAddress,
@@ -141,11 +162,12 @@ const createHostel = async (req, res) => {
       owner_email,
       hostel_rooms: parsedRoomDetail, 
     });
-
     await newHostel.save();
+
+    const token = jwt.sign({ id: newHostel._id , userName:owner_name , userType: "hostelOwner"}, 'your-secret-key', { expiresIn: '24h' });  
     res
       .status(201)
-      .json({ message: "Hostel Added Successfully", data: newHostel });
+      .json({ message: "Hostel Added Successfully", token : token , userType: "hostelOwner" });
   } catch (err) {
     console.log(err);
     res.status(400).json({ message: "Something went wrong" });

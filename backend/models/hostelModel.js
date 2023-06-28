@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const hostelSchema = new mongoose.Schema(
   {
+    authUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AuthUser",
+    },
     hostel_id: {
       type: String,
       required: true,

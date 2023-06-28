@@ -5,9 +5,10 @@ const UserSchema = require("../models/userModel");
 const User = UserSchema.User;
 const AuthUserSchema = require("../models/authuserModel");
 const AuthUser = AuthUserSchema.AuthUser;
+const RoleSchema = require("../models/roleModel");
+const Role = RoleSchema.Role;
 const HostelSchema = require("../models/hostelModel");
 const Hostel = HostelSchema.Hostel;
-
 
 const getAllUsers = async (req, res) => {
   try {
@@ -24,6 +25,7 @@ const getUserById = async (req, res) => {
   try {
     const id = req.params.id;
     const data = await User.findById(id);
+    console.log(id)
 
     if (!data) {
       return res.status(500).json({ message: "User Not Found" });
@@ -36,21 +38,45 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getUserByAuthUserId = async (req , res) => {
+   try {
+      const userId = req.user.id;
+      const user = await User.findOne({ authUser: userId });
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.status(200).json({ user });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Something went wrong' });
+    }
+  }
+
 const createUser = async (req, res) => {
   try {
-    const { username, password, name, gender, phone_number, email_address } =
+    const { email_address, password, name, gender, phone_number } =
       req.body;
 
-    // Check if the username already exists in the AuthUser collection
-    const existingAuthUser = await AuthUser.findOne({ username });
+    // Check if the useremail already exists in the AuthUser collection
+    const existingAuthUser = await AuthUser.findOne({ email_address });
     if (existingAuthUser) {
       return res.status(409).json({ message: "Username already exists" });
     }
 
-    // Create a new AuthUser document
+    // Create a new AuthUser documentt
+
+    const roleName = "hostelUser";
+    const newUserRole = new Role({
+      rolename:roleName,
+    });
+    await newUserRole.save();
+
     const newAuthUser = new AuthUser({
-      username,
-      password, // Hash the password before storing it (e.g., using bcrypt)
+      useremail: email_address,
+      password, 
+      role: newUserRole._id,
     });
     await newAuthUser.save();
 
@@ -64,8 +90,8 @@ const createUser = async (req, res) => {
     });
     await newUser.save();
 
-    const token = jwt.sign({ userId: newUser._id }, 'your-secret-key');  
-    res.status(201).json({ message: "User Created Successfully" , token : token });
+    const token = jwt.sign({ id: newUser._id  , userName:name , userType: "hostelUser"}, 'your-secret-key', { expiresIn: '24h' });  
+    res.status(201).json({ message: "User Created Successfully" , token : token , userType: "hostelUser" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" , error: error});
@@ -74,14 +100,27 @@ const createUser = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    console.log(username);
+    const { useremail, password } = req.body;
 
-    // Find the AuthUser document based on the username
-    const authUser = await AuthUser.findOne({ username });
+    // Find the AuthUser document based on the useremail
+    const authUser = await AuthUser.findOne({ useremail });
 
     if (!authUser) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const id = authUser.role;
+    const roleName = await Role.findById({_id:id});
+    let Userid;
+    let Username;
+    if(roleName.rolename === "hostelOwner"){
+      const hostel = await Hostel.findOne({authUser:authUser._id});
+      Userid = hostel._id;
+      Username = hostel.owner_name;
+    }else{
+      const user = await User.findOne({authUser:authUser._id});
+      Userid = user._id;
+      Username = user.name;
     }
 
     // Validate the password (e.g., using bcrypt)
@@ -92,11 +131,11 @@ const login = async (req, res) => {
     }
 
     // Generate and sign a JWT token
-    const token = jwt.sign({ id: authUser._id }, "your-secret-key", {
-      expiresIn: "1h",
+    const token = jwt.sign({ id: Userid, userName:Username , userType: roleName.rolename }, "your-secret-key", {
+      expiresIn: "24h",
     });
 
-    res.status(200).json({ token });
+    res.status(200).json({ token , roleName });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
@@ -105,7 +144,7 @@ const login = async (req, res) => {
 
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization;
-
+ 
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -113,15 +152,12 @@ const authenticate = (req, res, next) => {
   try {
     // Verify the token
     const decoded = jwt.verify(token, "your-secret-key");
-
-    console.log(decoded);
     // Attach the user information to the request object
     req.user = { id: decoded.id };
-    console.log(req.user);
 
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized" , error: error});
   }
 };
 
@@ -178,6 +214,7 @@ const deleteUserById = async (req, res) => {
 module.exports = {
   getAllUsers,
   getUserById,
+  getUserByAuthUserId,
   createUser,
   login,
   authenticate,
