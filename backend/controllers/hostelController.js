@@ -47,6 +47,15 @@ const uploadImage = (req, res, next) => {
   });
 };
 
+const getPostalCodeApiKey = (req , res) => {
+  try{
+    const data = process.env.POSTALCODE_API_KEY;
+    res.status(200).json({data:data});
+  }catch(error){
+    res.status(500).json({ message: "Something Went Wrong" });
+  }
+}; 
+
 const getAllHostel = async (req, res) => {
   try {
     const data = await Hostel.find();
@@ -242,6 +251,7 @@ const deleteHostelById = async (req, res, next) => {
 
 module.exports = {
   uploadImage,
+  getPostalCodeApiKey,
   getAllHostel,
   getHostelById,
   createHostel,

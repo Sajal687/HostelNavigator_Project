@@ -41,6 +41,9 @@ const Login = () => {
   const [open, setOpen] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState("");
 
+  const { loggedIn, setLoggedIn } = useContext(AuthUserContext);
+  const {removeActiveStyle , setRemoveActiveStyle} = useContext(ActivePageContext);
+
   const {
     register,
     handleSubmit,
@@ -48,12 +51,19 @@ const Login = () => {
   } = useForm();
   const navigate = useNavigate();
 
-  const location = useLocation();
-  let hostelDetails = location.state[0];
-  let userType = location.state[1].userType;
 
-  const { loggedIn, setLoggedIn } = useContext(AuthUserContext);
-  const {removeActiveStyle , setRemoveActiveStyle} = useContext(ActivePageContext);
+  const location = useLocation();
+  const {state} = location;
+  let hostelDetails;
+  let userType;
+
+  if(state === null){
+    hostelDetails = {};
+    userType = "";
+  }else{
+    hostelDetails = state[0];
+    userType = state[1].userType;
+  }
 
   useEffect(()=>{
     setRemoveActiveStyle(true);
@@ -75,36 +85,26 @@ const Login = () => {
 
       localStorage.setItem("token", response.data.token);
 
-      if (
-        (userType === "hostelOwner" || userType === "") &&
-        response.data.roleName.rolename === "hostelOwner"
-      ) {
+      if ( (userType === "hostelOwner" || userType === "") && response.data.roleName.rolename === "hostelOwner") {
         navigate("/ownerdashboard", { state: userType });
-      } else if (
-        (userType === "hostelUser" || userType === "") &&
-        response.data.roleName.rolename === "hostelUser"
-      ) {
-        userType === ""
-          ? navigate("/hostellist")
-          : navigate("/bookinghostel", { state: hostelDetails });
+      } else if ((userType === "hostelUser" || userType === "") && response.data.roleName.rolename === "hostelUser") {
+        userType === "" ? navigate("/hostellist") : navigate("/bookinghostel", { state: hostelDetails });
       } else {
-        // console.log(response.data.roleName.rolename);
         console.log("No User Is Found By this Data");
       }
     } catch (error) {
       toast.error("Username and Password not matched");
-      // console.log(error);
     }
   };
 
   const handleSignup = () => {
     if (userType === "hostelOwner") {
       navigate("/register", {
-        state: { userType: userType, hostelDetails: {} },
+        state: state ,
       });
     } else {
       navigate("/register", {
-        state: { userType: userType, hostelDetails: hostelDetails },
+        state: state,
       });
     }
   };

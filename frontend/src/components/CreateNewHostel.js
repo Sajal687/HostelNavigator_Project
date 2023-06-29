@@ -82,11 +82,11 @@ const CreateNewHostel = () => {
   useEffect(() => {
     const fetchEnvrionmentVariable = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/env`);
-        // console.log(response.data)
-        setEnvVariable(response.data);
+        const response = await axios.get(`${BASE_URL}/api`);
+        console.log(response.data.data)
+        setEnvVariable(response.data.data);
       } catch (error) {
-        // console.error("Error fetching environment variables:", error);
+        console.error("Error fetching environment variables:", error);
       }
     };
     fetchEnvrionmentVariable();
@@ -111,7 +111,7 @@ const CreateNewHostel = () => {
         url: "https://get-details-by-pin-code-india.p.rapidapi.com/detailsbypincode",
         headers: {
           "content-type": "application/json",
-          "X-RapidAPI-Key": envVariable.POSTALCODE_API_KEY,
+          "X-RapidAPI-Key": envVariable,
           "X-RapidAPI-Host": "get-details-by-pin-code-india.p.rapidapi.com",
         },
         data: { pincode: codeValue },

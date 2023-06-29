@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  getPostalCodeApiKey,
   getAllHostel,
   getHostelById,
   uploadImage,
@@ -10,6 +11,7 @@ const {
 
 const router = express(express.Router());
 
+router.get('/api',getPostalCodeApiKey);
 router.get("/hostels", getAllHostel);
 router.get("/hostels/:id", getHostelById);
 router.post("/hostels", uploadImage , createHostel);
