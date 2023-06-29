@@ -8,7 +8,6 @@ import { FormProvider, useForm, Controller } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthUserContext } from "../App";
 import {BASE_URL} from '../services/helper';
-
 import {
   Grid,
   Box,
@@ -84,10 +83,10 @@ const CreateNewHostel = () => {
     const fetchEnvrionmentVariable = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/env`);
-        console.log(response.data)
+        // console.log(response.data)
         setEnvVariable(response.data);
       } catch (error) {
-        console.error("Error fetching environment variables:", error);
+        // console.error("Error fetching environment variables:", error);
       }
     };
     fetchEnvrionmentVariable();
@@ -124,7 +123,7 @@ const CreateNewHostel = () => {
         setCityNameVisible(true);
         setStateNameVisible(true);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         setCityNameVisible(false);
         setStateNameVisible(false);
       }
@@ -196,7 +195,7 @@ const CreateNewHostel = () => {
         navigate("/registerowner");
       }
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   });
 

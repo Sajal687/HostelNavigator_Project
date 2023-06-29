@@ -13,7 +13,6 @@ import {
 import Carousel from "react-material-ui-carousel";
 import {BASE_URL} from '../services/helper';
 
-
 const OwnerDashboard = () => {
   const [hostelDetails, setHostelDetails] = useState({});
   const [bookingRequests, setBookingRequests] = useState([]);
@@ -24,11 +23,11 @@ const OwnerDashboard = () => {
     const fetchHostelById = async () => {
       try {
         const token = localStorage.getItem("token");
-        console.log(token);
+        // console.log(token);
         const encodePayload = token.split(".")[1];
         const decodedPayload = JSON.parse(window.atob(encodePayload));
         const id = decodedPayload.id;
-        console.log(id);
+        // console.log(id);
 
         if (token) {
           const response = await axios.get(
@@ -47,7 +46,7 @@ const OwnerDashboard = () => {
               authorization: token,
             },
           });
-          console.log(res.data.data);
+          // console.log(res.data.data);
           setBookingRequests(res.data.data);
 
           const nothingPending = res.data.data.map((request) => {
@@ -60,7 +59,7 @@ const OwnerDashboard = () => {
           setAllPendingStatus(nothingPending.includes("pending"));
         }
       } catch (error) {
-        console.log("Error fetching hostel details:", error);
+        // console.log("Error fetching hostel details:", error);
       }
     };
     fetchHostelById();
@@ -97,7 +96,7 @@ const OwnerDashboard = () => {
   // };
 
   const handleAcceptRequest = async (bookingId) => {
-    console.log(`Accept request with ID: ${bookingId}`);
+    // console.log(`Accept request with ID: ${bookingId}`);
     try {
       const response = await axios({
         method: "put",
@@ -107,15 +106,15 @@ const OwnerDashboard = () => {
           status: "accept",
         },
       });
-      console.log(response.data.booking.status);
+      // console.log(response.data.booking.status);
       setChangeStatus(!changeStatus);
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
   const handleRejectRequest = async (bookingId) => {
-    console.log(`Reject request with ID: ${bookingId}`);
+    // console.log(`Reject request with ID: ${bookingId}`);
     try {
       const response = await axios({
         method: "put",
@@ -125,10 +124,10 @@ const OwnerDashboard = () => {
           status: "reject",
         },
       });
-      console.log(response.data.booking.status);
+      // console.log(response.data.booking.status);
       setChangeStatus(!changeStatus);
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 

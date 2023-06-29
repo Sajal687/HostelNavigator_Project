@@ -18,7 +18,6 @@ import {
   CardMedia,
   InputLabel,
 } from "@mui/material";
-
 const HostelBooking = () => {
   const [userDetails, setUserDetails] = useState({
     userId: "",
@@ -68,7 +67,7 @@ const HostelBooking = () => {
           }
         }
        catch(error){
-          console.log("Error fetching user details:", error);
+          // console.log("Error fetching user details:", error);
         };
       };
       userData();
@@ -114,7 +113,7 @@ const HostelBooking = () => {
      catch (err){
       toast(err.response.status === 409 ? `Booking Already Exist for ${hostelDetails.name}` : "");
       navigate('/hostellist');
-      console.log(err);
+      // console.log(err);
     }
   });
 

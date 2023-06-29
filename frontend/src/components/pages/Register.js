@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import axios from "axios";
 import {BASE_URL} from '../../services/helper';
-
+console
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -38,7 +38,7 @@ export default function SignUp() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userType, hostelDetails } = location.state;
-  console.log(userType, hostelDetails);
+  // console.log(userType, hostelDetails);
 
   const handleSignup = async (data) => {
     if (userType === "hostelOwner") {
@@ -65,7 +65,7 @@ export default function SignUp() {
         if (response.status === 201) {
           toast.success("Successfully Register!");
           setLoggedIn(true);
-          console.log(response.data);
+          // console.log(response.data);
         } else {
           toast.error("Some error occurred");
         }

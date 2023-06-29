@@ -10,7 +10,7 @@ const ShowSearchResult = () => {
   useEffect(() => {
     async function fetchData() {
       const response = await axios.get(`${BASE_URL}/hostels`);
-      console.log(response.data.data[0].hostel_address.city);
+      // console.log(response.data.data[0].hostel_address.city);
       const hostelName = response.data.data.map((val, index) => {
         return val.hostel_name;
       });

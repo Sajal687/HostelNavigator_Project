@@ -55,6 +55,7 @@ function NavigationBar() {
     setAnchorElNav(null);
   };
 
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     settings.pop();
@@ -146,7 +147,7 @@ function NavigationBar() {
         const TokenExpiry = decodedPayload.exp;
         const currentTime = new Date().getTime() / 1000;
         if (TokenExpiry < currentTime) {
-          console.log(token);
+          // console.log(token);
           setLoggedIn(false);
         } else {
           setLoggedIn(true);
@@ -158,7 +159,7 @@ function NavigationBar() {
               },
             });
             setNotifications(res.data.data);
-            console.log(res.data);
+            // console.log(res.data);
             setCountNotification(
               res.data.data.length === 0 ?
               0 : 
