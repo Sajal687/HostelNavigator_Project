@@ -98,7 +98,7 @@ const OwnerDashboard = () => {
   const handleAcceptRequest = async (bookingId) => {
     // console.log(`Accept request with ID: ${bookingId}`);
     try {
-      const response = await axios({
+      await axios({
         method: "put",
         url: `${BASE_URL}/bookings/${bookingId}`,
         data: {
@@ -106,7 +106,6 @@ const OwnerDashboard = () => {
           status: "accept",
         },
       });
-      // console.log(response.data.booking.status);
       setChangeStatus(!changeStatus);
     } catch (err) {
       // console.log(err);
@@ -116,7 +115,7 @@ const OwnerDashboard = () => {
   const handleRejectRequest = async (bookingId) => {
     // console.log(`Reject request with ID: ${bookingId}`);
     try {
-      const response = await axios({
+      await axios({
         method: "put",
         url: `${BASE_URL}/bookings/${bookingId}`,
         data: {
@@ -124,7 +123,6 @@ const OwnerDashboard = () => {
           status: "reject",
         },
       });
-      // console.log(response.data.booking.status);
       setChangeStatus(!changeStatus);
     } catch (err) {
       // console.log(err);
