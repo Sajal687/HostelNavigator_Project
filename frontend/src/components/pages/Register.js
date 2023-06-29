@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import axios from "axios";
 import {BASE_URL} from '../../services/helper';
-console
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -75,7 +74,7 @@ export default function SignUp() {
         navigate(Object.keys(hostelDetails).length === 0 ? '/hostellist' : "/bookinghostel", { state: location.state.hostelDetails });
       } catch (error) {
         toast.error("Some Error Occured");
-        console.log(error);
+        // console.log(error);
       }
     }
   };
