@@ -35,13 +35,13 @@ const App = () => {
         <Route exact path="/hostellist" element={<HostelList/>} />
         <Route exact path="/hosteldetails" element={<ShowHostelDetails/>} />
         <Route exact path="/createhostel" element={<CreateNewHostel/>} />
-        <Route exact path="/login" element={!loggedIn && <Login/> ? <Login/> : <Home/>} />
-        <Route exact path="/register" element={<Register/>} />
         <Route exact path="/bookinghostel" element={<HostelBooking/>} />
         <Route exact path="/ownerdashboard" element={<OwnerDashboard/>} />
         <Route exact path="/about" element={<AboutUs/>} />
         <Route exact path="/faqs" element={<FAQs/>} />
         <Route exact path="/contact" element={<ContactUs/>} />
+        <Route exact path="/login" element={!loggedIn  ? <Login/> : <Home/>} />
+        <Route exact path="/register" element={<Register/>} />
       </Routes>
       </ActivePageContext.Provider>
     </AuthUserContext.Provider>

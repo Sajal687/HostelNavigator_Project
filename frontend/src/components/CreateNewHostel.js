@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-
 import axios from "axios";
 import React, { useState, useEffect, useContext } from "react";
 import toast from "react-hot-toast";
@@ -83,8 +82,7 @@ const CreateNewHostel = () => {
     const fetchEnvrionmentVariable = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api`);
-        console.log(response.data.data)
-        setEnvVariable(response.data.data);
+        setEnvVariable(response.data.data.replaceAll('"', ''));
       } catch (error) {
         console.error("Error fetching environment variables:", error);
       }

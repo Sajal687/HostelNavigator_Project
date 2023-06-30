@@ -36,10 +36,10 @@ export default function SignUp() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(location.state)
+  // console.log(location.state)
   let userType = location.state[1].userType;
   let hostelDetails = location.state[0];
-  console.log(userType, hostelDetails);
+  // console.log(userType, hostelDetails);
 
   const handleSignup = async (data) => {
     if (userType === "hostelOwner") {
