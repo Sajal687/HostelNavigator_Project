@@ -179,7 +179,7 @@ const createHostel = async (req, res) => {
       .json({ message: "Hostel Added Successfully", token : token , userType: "hostelOwner" });
   } catch (err) {
     console.log(err);
-    res.status(400).json({ message: "Something went wrong" });
+    res.status(400).json({ message: "Something went wrong" , error:err});
   }
 };
 
