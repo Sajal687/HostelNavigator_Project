@@ -98,15 +98,10 @@ const Login = () => {
   };
 
   const handleSignup = () => {
-    if (userType === "hostelOwner") {
+    console.log(state);
       navigate("/register", {
         state: state ,
-      });
-    } else {
-      navigate("/register", {
-        state: state,
-      });
-    }
+      })
   };
 
   const handleClose = () => {
@@ -115,7 +110,7 @@ const Login = () => {
 
   const handleListItemClick = (value) => {
     setSelectedValue(value);
-    userType = value;
+    state.userType = value;
     handleSignup();
   };
 
