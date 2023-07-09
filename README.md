@@ -5,7 +5,9 @@ At HostelNavigator, our mission is to provide comfortable and affordable accommo
 
 With a focus on quality, safety, and convenience, we aim to exceed the expectations of our residents and become their preferred choice for hostel accommodation.
 
+## Live project link
 
+https://hostelnavigator.netlify.app/
 
 ## Screenshots
 
@@ -37,11 +39,6 @@ With a focus on quality, safety, and convenience, we aim to exceed the expectati
 
 **Database:** MongoDB
 
-
-
-## Live project link
-
-https://hostelnavigator.netlify.app/
 
 
 ## FAQ
