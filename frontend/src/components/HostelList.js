@@ -82,7 +82,7 @@ const HostelList = () => {
           Popular Hostels
         </Typography>
         <Typography variant="body1">
-          Check out some of the highly-rated hostels preferred by students.
+          Check out some of the highly-rated hostels preferred by students here.
         </Typography>
       </Box>
     <Box
