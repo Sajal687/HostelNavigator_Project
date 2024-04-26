@@ -132,7 +132,7 @@ const Hostel = ({
         </CardContent>
         <CardActions>
           <Button size="small" variant="contained" onClick={handleMoreDetails}>
-            More Details
+            More Detail
           </Button>
           {userDetails.userType !== "hostelOwner" && 
             <Button size="small" variant="contained" onClick={handleBooking}>
