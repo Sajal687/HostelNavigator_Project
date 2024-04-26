@@ -9,7 +9,6 @@ import {
   CardContent,
   Button,
 } from "@mui/material";
-// import { Edit } from "@mui/icons-material";
 import Carousel from "react-material-ui-carousel";
 import {BASE_URL} from '../services/helper';
 
