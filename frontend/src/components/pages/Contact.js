@@ -19,7 +19,7 @@ const ContactUs = () => {
             <Button variant="contained" color="primary" href="hostelbuddyservices@gmail.com">
               Email Us : hostelbuddyservices@gmail.com
             </Button>
-            <Button variant="outlined" color="primary" sx={{ mt: 2 }} href="tel:+91999999999">
+            <Button variant="outlined" color="primary" sx={{ mt: 2 }} href="tel:+919999999">
               Call Us
             </Button>
           </Box>
