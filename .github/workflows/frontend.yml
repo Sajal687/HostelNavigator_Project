@@ -2,7 +2,7 @@ name: HostelNavigator Frontend
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "main" ]
 
 jobs:
   build:
