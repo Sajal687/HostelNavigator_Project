@@ -88,9 +88,6 @@ const HostelBooking = () => {
     formData.append("user_gender", userDetails.gender);
     formData.append("desired_roomtype", data.roomType);
 
-    // for (const value of formData.values()) {
-    //   console.log(value);
-    // }
     const token = localStorage.getItem("token");
 
       try {
