@@ -1,0 +1,50 @@
+# Render Blueprint: Express API (backend/).
+services:
+  - type: web
+    name: hostelnavigatorbackend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: CORS_ORIGIN
+        value: https://hostelnavigator.online,https://www.hostelnavigator.online
+      - key: CLIENT_URL
+        value: https://hostelnavigator.online
+      # Generated once on first deploy; rotating it logs everyone out.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: POSTALCODE_API_KEY
+        sync: false
+      # Email: set SMTP_* for any provider, or EMAIL_USER/EMAIL_PASS for Gmail.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_FROM
+        value: HostelNavigator <no-reply@hostelnavigator.online>
+      - key: CONTACT_EMAIL
+        value: support@hostelnavigator.online
+      - key: AI_RATE_LIMIT
+        value: "30"
+      - key: INQUIRY_RATE_LIMIT
+        value: "5"
