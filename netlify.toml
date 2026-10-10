@@ -1,0 +1,27 @@
+# Netlify: React frontend at https://hostelnavigator.online
+# SPA fallback lives in frontend/public/_redirects (/* /index.html 200).
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Public value baked into the bundle. Point it at the custom API domain if you add one.
+  REACT_APP_API_URL = "https://hostelnavigatorbackend.onrender.com"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # geolocation is needed for the "Near me" search.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
+
+# CRA emits content-hashed filenames under /static, so they can be cached forever.
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
