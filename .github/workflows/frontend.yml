@@ -3,10 +3,9 @@ name: HostelNavigator Frontend
 on:
   push:
     branches: [ "main" ]
-  path:
-    - "frontend/**"
-    - ".github/workflows/frontend.yml"
-
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
 jobs:
   build:
     runs-on: ubuntu-latest
