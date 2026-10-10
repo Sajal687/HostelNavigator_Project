@@ -3,3 +3,21 @@ body{
     padding: 0;
     box-sizing: border-box;
 }
+
+/* Keep the footer at the bottom on short pages. */
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+img {
+    max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

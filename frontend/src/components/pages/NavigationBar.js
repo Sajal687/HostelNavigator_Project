@@ -1,64 +1,98 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef , useContext } from "react";
 import axios from "axios";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Link from "@mui/material/Link";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
+import {
+  AppBar,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Popover,
+  Stack,
+  Toolbar,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import MenuItem from "@mui/material/MenuItem";
-import Badge from "@mui/material/Badge";
-import MailIcon from "@mui/icons-material/Mail";
-import Tooltip from "@mui/material/Tooltip";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Popper from "@mui/material/Popper";
+import CloseIcon from "@mui/icons-material/Close";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import AddHomeWorkOutlinedIcon from "@mui/icons-material/AddHomeWorkOutlined";
 import logo from "../../assets/logo7.png";
 import { BASE_URL } from "../../services/helper";
+import { tokens } from "../../theme";
 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ActivePageContext, AuthUserContext } from "../../App";
 
-const pages = ["Home" , "Hostels" , "AboutUs" , "ContactUs" , "FAQs"];
-const settings = ["Logout"];
+const pages = [
+  { key: "Home", label: "Home", path: "/" },
+  { key: "Hostels", label: "Find hostels", path: "/hostellist" },
+  { key: "AboutUs", label: "About", path: "/about" },
+  { key: "FAQs", label: "FAQs", path: "/faqs" },
+  { key: "ContactUs", label: "Contact", path: "/contact" },
+];
+
+// Account menu entries per role (derived, so nothing leaks between logins).
+const settingsFor = (userType) => [
+  ...(userType === "hostelOwner" ? ["Dashboard"] : []),
+  ...(userType === "admin" ? ["Admin"] : []),
+  "Logout",
+];
+
+// Listing pages count as "Find hostels" for the active-link highlight.
+const activeKeyFor = (pathname) => {
+  if (pathname === "/") return "Home";
+  if (["/hostellist", "/hosteldetails", "/bookinghostel"].includes(pathname)) return "Hostels";
+  return pages.find((page) => page.path === pathname)?.key || null;
+};
+
+export const Brand = ({ onClick, light = false }) => (
+  <Box component="a" href="/" onClick={onClick} sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none", flexShrink: 0 }}>
+    <Box component="img" src={logo} alt="" sx={{ height: 36, width: 36, borderRadius: "10px" }} />
+    <Typography component="span" sx={{ fontWeight: 800, fontSize: "1.15rem", letterSpacing: "-0.02em", color: light ? "#fff" : tokens.heading }}>
+      Hostel<Box component="span" sx={{ color: light ? "#a5b4fc" : "primary.main" }}>Navigator</Box>
+    </Typography>
+  </Box>
+);
 
 function NavigationBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [userDetails, setUserDetails] = useState({});
   const [userNameFirstWord, setUserNameFirstWord] = useState("");
   const [notifications, setNotifications] = useState([]);
   const [countNotification, setCountNotification] = useState(0);
   const [showMessages, setShowMessages] = useState(false);
-  const [activePage, setActivePage] = useState(pages[0]);
   const anchorRef = useRef(null);
 
-  
-  const {loggedIn , setLoggedIn} = useContext(AuthUserContext);
-  const {removeActiveStyle , setRemoveActiveStyle} = useContext(ActivePageContext);
-  const navigate = useNavigate();
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
+  const {loggedIn , setLoggedIn} = useContext(AuthUserContext);
+  const {setRemoveActiveStyle} = useContext(ActivePageContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeKey = activeKeyFor(location.pathname);
+  const canListHostel = !loggedIn || userDetails.userType === "hostelUser";
+
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
   };
 
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    settings.pop();
+    setUserDetails({});
+    setNotifications([]);
+    setCountNotification(0);
+    setShowMessages(false);
     setLoggedIn(false);
     navigate('/');
   };
@@ -72,10 +106,12 @@ function NavigationBar() {
     switch (setting) {
       case "Logout":
         handleLogout();
-        handleNavLinkClick("Home");
         break;
       case "Dashboard":
         handleDashboard();
+        break;
+      case "Admin":
+        navigate("/admin");
         break;
       default:
         break;
@@ -85,40 +121,23 @@ function NavigationBar() {
 
   const handleLoginButton = () => {
     setRemoveActiveStyle(true);
+    setDrawerOpen(false);
     navigate("/login", { state: [{}, { userType: "" }] })
   }
 
-
+  // Same entry point as the Home page's "Hostel Owner" button: owner login / sign-up.
+  const handleListHostel = () => {
+    setRemoveActiveStyle(true);
+    setDrawerOpen(false);
+    navigate("/login", { state: [{}, { userType: "hostelOwner" }] });
+  };
 
   const handleNavLinkClick = (page) => {
     setRemoveActiveStyle(false);
-    switch (page) {
-      case "Home":
-        navigate("/");
-        setActivePage("Home");
-        break;
-      case "Hostels":
-        navigate("/hostellist");
-        setActivePage("Hostels");
-        break;
-      case "AboutUs":
-        navigate("/about");
-        setActivePage("AboutUs");
-        break;
-      case "ContactUs":
-        navigate("/contact");
-        setActivePage("ContactUs");
-        break;
-      case "FAQs":
-        navigate("/faqs");
-        setActivePage("FAQs");
-        break;
-      default:
-        break;
-    }
-    handleCloseNavMenu();
+    setDrawerOpen(false);
+    navigate(page.path);
   };
-  
+
 
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
@@ -126,6 +145,7 @@ function NavigationBar() {
 
   const handleMailIconClick = () => {
     setShowMessages(!showMessages);
+    handleMarkAllRead();
   };
 
 
@@ -138,11 +158,6 @@ function NavigationBar() {
       setUserDetails(decodedPayload);
       setUserNameFirstWord(decodedPayload.userName.charAt(0).toUpperCase());
 
-      //Add Dashboard Setting , If user is Hostel Owner
-      if (decodedPayload.userType === "hostelOwner" && !settings.includes("Dashboard") ) {
-        settings.push("Dashboard");
-      }
-
       if (Object.keys(decodedPayload).length !== 0) {
         const TokenExpiry = decodedPayload.exp;
         const currentTime = new Date().getTime() / 1000;
@@ -152,17 +167,20 @@ function NavigationBar() {
         } else {
           setLoggedIn(true);
           const fetchNotification = async () => {
-            const res = await axios.get(`${BASE_URL}/notification`, {
-              params: {
-                id: decodedPayload.id,
-                userType: decodedPayload.userType,
-              },
-            });
+            let res;
+            try {
+              // Identity comes from the token (attached by apiClient), not query params.
+              res = await axios.get(`${BASE_URL}/notification`);
+            } catch (error) {
+              return; // Notifications are non-critical; keep the navbar usable.
+            }
+            // Newest first.
+            res.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             setNotifications(res.data.data);
             // console.log(res.data);
             setCountNotification(
               res.data.data.length === 0 ?
-              0 : 
+              0 :
               res.data.data.reduce((total, notification) => {
                     return total + Number(notification.markRead === "no");
               }, 0)
@@ -172,267 +190,198 @@ function NavigationBar() {
         }
       }
     } else {
-      console.log("No Token Found");
       setLoggedIn(false);
     }
   }, [loggedIn, token ]);
 
- 
+
 
   const handleMarkAllRead = async () => {
-    notifications.map((notification) => notification.markRead = "yes")
+    if (!countNotification) return;
     setCountNotification(0);
-    countNotification && await axios.put(`${BASE_URL}/updateReadStatus/${notifications[0].receiver}`);
+    try {
+      await axios.put(`${BASE_URL}/updateReadStatus/${notifications[0].receiver}`);
+    } catch (error) {
+      // Non-critical: they'll show as unread again on the next load.
+    }
   }
 
   return (
-    <AppBar position="static" sx={{backgroundColor:"#09090a"}}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
-          <Link href="/">
-            <Box
-              component="img"
-              sx={{
-                height: 54,
-                width: 54,
-                display: { xs: "none", md: "flex" , borderRadius:"50%"},
-                mr: 1,
-              }}
-              alt="Logo"
-              src={logo}
-            />
-          </Link>
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".2rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            HostelNavigator
-          </Typography>
+    <AppBar
+      position="sticky"
+      color="inherit"
+      sx={{
+        backgroundColor: "rgba(255, 255, 255, 0.85)",
+        backdropFilter: "saturate(180%) blur(12px)",
+        borderBottom: `1px solid ${tokens.border}`,
+      }}
+    >
+      <Container maxWidth="lg">
+        <Toolbar disableGutters sx={{ minHeight: { xs: 60, md: 68 }, gap: 1 }}>
+          <Brand onClick={(e) => { e.preventDefault(); handleNavLinkClick(pages[0]); }} />
 
-          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{
-                display: { xs: "block", md: "none" },
-              }}
-            >
-              {pages.map((page) => (
-                <MenuItem key={page} onClick={() => handleNavLinkClick(page)}>
-                  <Typography textAlign="center">{page}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
+          {/* Desktop links */}
+          <Stack direction="row" spacing={0.5} sx={{ display: { xs: "none", md: "flex" }, ml: 4, flexGrow: 1 }} component="nav" aria-label="Main">
+            {pages.map((page) => {
+              const active = activeKey === page.key;
+              return (
+                <Button
+                  key={page.key}
+                  onClick={() => handleNavLinkClick(page)}
+                  aria-current={active ? "page" : undefined}
+                  sx={{
+                    color: active ? "primary.main" : tokens.body,
+                    backgroundColor: active ? tokens.primaryLight : "transparent",
+                    fontWeight: active ? 700 : 500,
+                    px: 1.5,
+                    "&:hover": { backgroundColor: active ? tokens.primaryLight : tokens.surfaceMuted, color: active ? "primary.main" : tokens.heading },
+                  }}
+                >
+                  {page.label}
+                </Button>
+              );
+            })}
+          </Stack>
+          <Box sx={{ flexGrow: 1, display: { xs: "block", md: "none" } }} />
 
-          <Link href="/">
-            <Box
-              component="img"
-              sx={{
-                height: 54,
-                width: 54,
-                display: { xs: "flex", md: "none" , borderRadius:"50%"},
-                mr: 1,
-              }}
-              alt="Logo"
-              src={logo}
-            />
-          </Link>
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href=""
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".01rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            HostelNavigator
-          </Typography>
-          <Box
-            sx={{
-              flexGrow: 1,
-              alignItems: "center",
-              justifyContent: "flex-end",
-              display: { xs: "none", md: "flex" },
-            }}
-          >
-            {pages.map((page) => (
+          <Stack direction="row" spacing={1} alignItems="center">
+            {canListHostel && (
               <Button
-                key={page}
-                onClick={() => handleNavLinkClick(page)}
-                sx={{
-                  border:"none",
-                  height: 63,
-                  mx: 2,
-                  color: activePage === page && !removeActiveStyle ? 'blue' : 'white',
-                  backgroundColor: activePage === page && !removeActiveStyle ? 'white' : '',
-                  display: 'block',
-                  '&:hover': {
-                    backgroundColor: activePage === page && !removeActiveStyle ? 'white' : 'white', 
-                    color: 'black', 
-                  },
-                }}
+                variant="outlined"
+                color="primary"
+                startIcon={<AddHomeWorkOutlinedIcon />}
+                onClick={handleListHostel}
+                sx={{ display: { xs: "none", sm: "inline-flex" } }}
               >
-                {page}
+                List your hostel
               </Button>
-            ))}
-          </Box>
+            )}
 
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-            }}
-          >
-            <IconButton
-              size="large"
-              aria-label="show new mails"
-              color="inherit"
-              onClick={handleMailIconClick}
-              ref={anchorRef}
-            >
-              <Badge
-                badgeContent={countNotification}
-                color="error"
-                sx={{ mr: 3 }}
+            {loggedIn && (
+              <Tooltip title="Notifications">
+                <IconButton
+                  aria-label={`${countNotification} unread notifications`}
+                  onClick={handleMailIconClick}
+                  ref={anchorRef}
+                  sx={{ color: tokens.body }}
                 >
-                <MailIcon onClick={handleMarkAllRead} />
-              </Badge>
-              <Popper
-                open={showMessages}
-                anchorEl={anchorRef.current}
-                placement="bottom"
-                disablePortal
-                modifiers={[
-                  {
-                    name: "offset",
-                    options: {
-                      offset: [0, 10],
-                    },
-                  },
-                ]}
-                >
-                <div>
-                  <Card onClick = {handleMarkAllRead}
-                    sx={{
-                      marginBottom: "10px",
-                      width: "300px",
-                      overflowY: "auto",
-                    }}
-                  >
-                    {notifications.map((notification, index) => (
-                      <CardContent
-                        key={index}
-                        sx={{
-                          fontSize: "14px",
-                          textAlign: "left",
-                          borderBottom: index !== notifications.length - 1 ? "1px dashed gray": "none",
-                          paddingBottom: "10px",
-                          backgroundColor: notification.markRead === "no" ? "#bdbdbd7d" : "#bdbdbd00",
-                        }}
-                      >
-                        {notification.message}
-                      </CardContent>
-                    ))}
-                  </Card>
-                </div>
-              </Popper>
-            </IconButton>
+                  <Badge badgeContent={countNotification} color="error">
+                    <NotificationsNoneIcon />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+            )}
 
             {loggedIn ? (
               <>
-                <Tooltip title={userDetails.userName}>
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "#21568f",
-                        padding: "5px",
-                        fontSize: "2rem",
-                      }}
-                    >
+                <Tooltip title={userDetails.userName || "Account"}>
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0.5 }} aria-label="Account menu">
+                    <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, fontSize: "1rem", fontWeight: 700 }}>
                       {userNameFirstWord}
                     </Avatar>
                   </IconButton>
                 </Tooltip>
                 <Menu
-                  sx={{ mt: "45px" }}
-                  id="menu-appbar"
+                  sx={{ mt: "8px" }}
+                  id="menu-account"
                   anchorEl={anchorElUser}
-                  anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
+                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                   keepMounted
-                  transformOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  {settings.map((setting) => (
-                    <MenuItem
-                      key={setting}
-                      onClick={() => handleSettingClick(setting)}
-                    >
-                      <Typography textAlign="center">{setting}</Typography>
+                  <Box px={2} py={1}>
+                    <Typography variant="subtitle2">{userDetails.userName}</Typography>
+                  </Box>
+                  <Divider />
+                  {settingsFor(userDetails.userType).map((setting) => (
+                    <MenuItem key={setting} onClick={() => handleSettingClick(setting)}>
+                      {setting}
                     </MenuItem>
                   ))}
                 </Menu>
               </>
             ) : (
-              <Button
-                onClick={() =>handleLoginButton()}
-                sx={{ color: "white" }}
-              >
-                Login
+              <Button variant="contained" onClick={handleLoginButton} sx={{ display: { xs: "none", md: "inline-flex" } }}>
+                Log in
               </Button>
             )}
-          </Box>
+
+            <IconButton
+              aria-label="Open menu"
+              onClick={() => setDrawerOpen(true)}
+              sx={{ display: { xs: "inline-flex", md: "none" }, color: tokens.heading }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Stack>
         </Toolbar>
       </Container>
+
+      <Popover
+        open={showMessages}
+        anchorEl={anchorRef.current}
+        onClose={() => setShowMessages(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{ sx: { width: "min(340px, 92vw)", maxHeight: "60vh", mt: 1 } }}
+      >
+        <Box px={2} py={1.5} borderBottom={`1px solid ${tokens.border}`}>
+          <Typography variant="subtitle2">Notifications</Typography>
+        </Box>
+        {notifications.length === 0 ? (
+          <Typography variant="body2" px={2} py={3} textAlign="center" color="text.secondary">No notifications yet.</Typography>
+        ) : (
+          notifications.map((notification, index) => (
+            <Box
+              key={notification._id || index}
+              px={2}
+              py={1.5}
+              sx={{
+                borderBottom: index !== notifications.length - 1 ? `1px solid ${tokens.border}` : "none",
+                backgroundColor: notification.markRead === "no" ? tokens.primaryLight : "transparent",
+              }}
+            >
+              <Typography variant="body2" color="text.primary">{notification.message}</Typography>
+              {notification.createdAt && (
+                <Typography variant="caption">{new Date(notification.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</Typography>
+              )}
+            </Box>
+          ))
+        )}
+      </Popover>
+
+      {/* Mobile navigation */}
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: "min(300px, 85vw)", borderRadius: "16px 0 0 16px" } }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" px={2} py={1.5}>
+          <Brand onClick={(e) => { e.preventDefault(); handleNavLinkClick(pages[0]); }} />
+          <IconButton aria-label="Close menu" onClick={() => setDrawerOpen(false)}><CloseIcon /></IconButton>
+        </Stack>
+        <Divider />
+        <List component="nav" aria-label="Main" sx={{ px: 1 }}>
+          {pages.map((page) => (
+            <ListItemButton
+              key={page.key}
+              selected={activeKey === page.key}
+              onClick={() => handleNavLinkClick(page)}
+              sx={{ borderRadius: 2, my: 0.25, "&.Mui-selected": { backgroundColor: tokens.primaryLight, color: "primary.main" } }}
+            >
+              <ListItemText primary={page.label} primaryTypographyProps={{ fontWeight: activeKey === page.key ? 700 : 500 }} />
+            </ListItemButton>
+          ))}
+        </List>
+        <Box px={2} pb={2} mt="auto">
+          <Stack spacing={1}>
+            {canListHostel && (
+              <Button variant="outlined" color="primary" startIcon={<AddHomeWorkOutlinedIcon />} onClick={handleListHostel} fullWidth>
+                List your hostel
+              </Button>
+            )}
+            {!loggedIn && <Button variant="contained" onClick={handleLoginButton} fullWidth>Log in</Button>}
+          </Stack>
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }

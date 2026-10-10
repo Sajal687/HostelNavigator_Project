@@ -1,118 +1,135 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import Hostel from "./Hostel";
-import axios from "axios";
-import { Box, Typography, styled } from "@mui/material";
-import {BASE_URL} from '../services/helper';
+import { Alert, Box, Button, CircularProgress, Container, Pagination, Typography } from "@mui/material";
+import HostelSearchPanel, { EMPTY_FILTERS } from "./search/HostelSearchPanel";
+import { searchHostels } from "../services/hostelService";
+import { getAiStatus } from "../services/aiService";
+import { getErrorMessage } from "../services/apiClient";
 
-const Heading = styled(Typography)`
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-top: 1.5rem;
-  margin-bottom: 0.2rem;
-  animation: slideIn 1s ease-in-out;
-  
-  @keyframes slideIn {
-    from {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-  `;
-  
-  const Subheading = styled(Typography)`
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-  `;
-  
+const PAGE_SIZE = 12;
+
 const HostelList = () => {
-  const [hostels, setHostels] = useState(null);
+  // The home page hero hands over either filters or a smart-search query.
+  const location = useLocation();
+  const [filters, setFilters] = useState(() =>
+    location.state?.filters ? { ...EMPTY_FILTERS, ...location.state.filters } : EMPTY_FILTERS
+  );
+  const [page, setPage] = useState(1);
+  const [results, setResults] = useState({ hostels: [], pagination: null });
+  const [status, setStatus] = useState({ loading: true, error: "" });
+  const [aiEnabled, setAiEnabled] = useState(false);
 
   useEffect(() => {
-    const fetchHostels = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/hostels`);
-        const { data } = response.data;
-        convertBufferToBase64(data);
-      } catch (err) {
-        console.log("Something went wrong");
-      }
-    };
-
-    fetchHostels();
+    getAiStatus().then(setAiEnabled).catch(() => setAiEnabled(false));
   }, []);
 
-  const convertBufferToBase64 = (data) => {
-    const updatedData = data.map((hostel) => {
-      const base64Image = hostel.hostel_img.map((img) => {
-        return arrayBufferToBase64(img.data.data);
-      });
-      return {
-        ...hostel,
-        hostel_img: base64Image,
-      };
-    });
-    setHostels(updatedData);
-  };
-
-  const arrayBufferToBase64 = (arrayBuffer) => {
-    let binary = "";
-    const bytes = new Uint8Array(arrayBuffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
+  const fetchHostels = useCallback(async () => {
+    setStatus({ loading: true, error: "" });
+    try {
+      const data = await searchHostels({ ...filters, page, limit: PAGE_SIZE });
+      setResults(data);
+      setStatus({ loading: false, error: "" });
+    } catch (err) {
+      setStatus({ loading: false, error: getErrorMessage(err, "We couldn't load hostels. Please try again.") });
     }
-    return window.btoa(binary);
+  }, [filters, page]);
+
+  useEffect(() => {
+    fetchHostels();
+  }, [fetchHostels]);
+
+  const handleApply = (next) => {
+    setPage(1);
+    setFilters(next);
   };
 
+  const { hostels, pagination } = results;
 
   return (
-    <>
-      <Heading variant="h2" component="h1">
-        Find Your Perfect Hostel
-      </Heading>
-      <Subheading variant="subtitle1">
-        Browse through a wide range of hostels tailored for students.
-      </Subheading>
-      <Box width="100%">
-        <Typography variant="h4" gutterBottom>
-          Popular Hostels
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
+      <Box mb={3}>
+        <Typography variant="h3" component="h1" sx={{ fontSize: { xs: "1.75rem", md: "2.25rem" } }}>
+          Find your perfect hostel
         </Typography>
-        <Typography variant="body1">
-          Check out some of the highly-rated hostels preferred by students.
+        <Typography variant="body1" mt={0.75}>
+          Verified hostels and PGs for students. Filter by city, budget and amenities, or try Smart search.
         </Typography>
       </Box>
-    <Box
-      display="grid"
-      gridTemplateColumns="repeat(auto-fill, minmax(300px, 1fr))"
-      gap={2}
-      justifyContent="center"
-      alignItems="center"
-      padding={2}
-    >
-      {hostels &&
-        hostels.map((hostel) => (
-          <Hostel
-            key={hostel.id}
-            hostel_id = {hostel.hostel_id}
-            name={hostel.hostel_name}
-            address={hostel.hostel_address}
-            rent={hostel.hostel_rent}
-            rating={hostel.hostel_rating}
-            image={hostel.hostel_img}
-            ownerName={hostel.owner_name}
-            contactPhn={hostel.owner_phone_number}
-            email={hostel.owner_email}
-            allowGender={hostel.hostel_gender_type}
-            facilities={hostel.hostel_facilities}
-          />
-        ))}
-    </Box>
-    </>
+
+      <HostelSearchPanel
+        filters={filters}
+        onApply={handleApply}
+        aiEnabled={aiEnabled}
+        initialSmartQuery={location.state?.smartQuery}
+      />
+
+      {pagination && !status.loading && !status.error && (
+        <Typography variant="body2" color="text.secondary" mb={1}>
+          {pagination.total} hostel{pagination.total === 1 ? "" : "s"} found
+        </Typography>
+      )}
+
+      {status.loading ? (
+        <Box display="flex" justifyContent="center" py={6}>
+          <CircularProgress aria-label="Loading hostels" />
+        </Box>
+      ) : status.error ? (
+        <Alert severity="error" action={<Button color="inherit" size="small" onClick={fetchHostels}>Retry</Button>}>
+          {status.error}
+        </Alert>
+      ) : hostels.length === 0 ? (
+        <Box textAlign="center" py={6}>
+          <Typography variant="h6" gutterBottom>No hostels match your search</Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Try a higher budget, fewer facilities, or a bigger radius.
+          </Typography>
+          <Button variant="outlined" onClick={() => handleApply(EMPTY_FILTERS)}>Clear all filters</Button>
+        </Box>
+      ) : (
+        <>
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fill, minmax(min(100%, 270px), 1fr))"
+            gap={3}
+          >
+            {hostels.map((hostel) => (
+              <Hostel
+                key={hostel._id}
+                id={hostel._id}
+                hostel_id={hostel.hostel_id}
+                name={hostel.hostel_name}
+                address={hostel.hostel_address}
+                rent={hostel.hostel_rent}
+                rating={hostel.hostel_rating}
+                image={hostel.hostel_img}
+                ownerName={hostel.owner_name}
+                contactPhn={hostel.owner_phone_number}
+                email={hostel.owner_email}
+                allowGender={hostel.hostel_gender_type}
+                facilities={hostel.hostel_facilities}
+                isVerified={hostel.isVerified}
+                hasVacancy={hostel.has_vacancy !== false}
+                distanceKm={hostel.distanceKm}
+              />
+            ))}
+          </Box>
+          {pagination.totalPages > 1 && (
+            <Box display="flex" justifyContent="center" mt={3}>
+              <Pagination
+                count={pagination.totalPages}
+                page={page}
+                onChange={(_, value) => {
+                  setPage(value);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                color="primary"
+              />
+            </Box>
+          )}
+        </>
+      )}
+    </Container>
   );
 };
 

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const {getBookingByHostelId , createBooking , updateBookingStatus} = require('../controllers/bookingController');
-const {authenticate} = require('../controllers/userController');
+const { authenticate, requireRole, requireSelf } = require('../middleware/auth');
 
-router.get('/bookings/:id' , authenticate , getBookingByHostelId);
-router.post('/bookings', authenticate, createBooking);
-router.put('/bookings/:bookingId', updateBookingStatus);
+// :id is the hostel id; owners can only see their own hostel's bookings.
+router.get('/bookings/:id', authenticate, requireRole("hostelOwner"), requireSelf("id"), getBookingByHostelId);
+router.post('/bookings', authenticate, requireRole("hostelUser"), createBooking);
+router.put('/bookings/:bookingId', authenticate, requireRole("hostelOwner"), updateBookingStatus);
 
 module.exports = router;

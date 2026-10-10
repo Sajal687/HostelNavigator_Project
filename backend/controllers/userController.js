@@ -1,5 +1,8 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { signToken } = require("../middleware/auth");
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
 
 const UserSchema = require("../models/userModel");
 const User = UserSchema.User;
@@ -28,10 +31,10 @@ const getUserById = async (req, res) => {
     console.log(id)
 
     if (!data) {
-      return res.status(500).json({ message: "User Not Found" });
+      return res.status(404).json({ message: "User Not Found" });
     }
 
-    res.status(201).json({ message: "Users fetched Successfully", data: data });
+    res.status(200).json({ message: "Users fetched Successfully", data: data });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
@@ -59,8 +62,18 @@ const createUser = async (req, res) => {
     const { email_address, password, name, gender, phone_number } =
       req.body;
 
+    if (!isNonEmptyString(email_address) || !EMAIL_REGEX.test(email_address)) {
+      return res.status(400).json({ message: "A valid email address is required" });
+    }
+    if (!isNonEmptyString(password) || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+    if (!isNonEmptyString(name) || !isNonEmptyString(phone_number)) {
+      return res.status(400).json({ message: "Name and phone number are required" });
+    }
+
     // Check if the useremail already exists in the AuthUser collection
-    const existingAuthUser = await AuthUser.findOne({ email_address });
+    const existingAuthUser = await AuthUser.findOne({ useremail: email_address });
     if (existingAuthUser) {
       return res.status(409).json({ message: "Username already exists" });
     }
@@ -90,17 +103,25 @@ const createUser = async (req, res) => {
     });
     await newUser.save();
 
-    const token = jwt.sign({ id: newUser._id  , userName:name , userType: "hostelUser"}, 'your-secret-key', { expiresIn: '24h' });  
+    const token = signToken({ id: newUser._id, userName: name, userType: "hostelUser" });
     res.status(201).json({ message: "User Created Successfully" , token : token , userType: "hostelUser" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Something went wrong" , error: error});
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Email or phone number already registered" });
+    }
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
 const login = async (req, res) => {
   try {
     const { useremail, password } = req.body;
+
+    // Reject non-string input so query operators (e.g. { "$ne": null }) can't reach Mongo.
+    if (!isNonEmptyString(useremail) || !isNonEmptyString(password)) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
     // Find the AuthUser document based on the useremail
     const authUser = await AuthUser.findOne({ useremail });
@@ -113,7 +134,14 @@ const login = async (req, res) => {
     const roleName = await Role.findById({_id:id});
     let Userid;
     let Username;
-    if(roleName.rolename === "hostelOwner"){
+    if (!roleName) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    if (roleName.rolename === "admin") {
+      // Admins have no User/Hostel profile; their token id is the AuthUser id.
+      Userid = authUser._id;
+      Username = "Admin";
+    } else if(roleName.rolename === "hostelOwner"){
       const hostel = await Hostel.findOne({authUser:authUser._id});
       Userid = hostel._id;
       Username = hostel.owner_name;
@@ -131,9 +159,7 @@ const login = async (req, res) => {
     }
 
     // Generate and sign a JWT token
-    const token = jwt.sign({ id: Userid, userName:Username , userType: roleName.rolename }, "your-secret-key", {
-      expiresIn: "24h",
-    });
+    const token = signToken({ id: Userid, userName: Username, userType: roleName.rolename });
 
     res.status(200).json({ token , roleName });
   } catch (error) {
@@ -141,27 +167,6 @@ const login = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
-
-const authenticate = (req, res, next) => {
-  const token = req.headers.authorization;
- 
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  try {
-    // Verify the token
-    const decoded = jwt.verify(token, "your-secret-key");
-    // Attach the user information to the request object
-    req.user = { id: decoded.id };
-
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Unauthorized" , error: error});
-  }
-};
-
-
 
 const updateUserById = async (req, res) => {
   try {
@@ -178,11 +183,11 @@ const updateUserById = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { name, user_id, gender, phone_number, email_address, user_hostel_id },
-      { new: true, upsert: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedUser) {
-      return res.status(500).json({ message: "User not Found" });
+      return res.status(404).json({ message: "User not Found" });
     }
 
     res
@@ -195,14 +200,14 @@ const updateUserById = async (req, res) => {
 
 const deleteUserById = async (req, res) => {
   try {
-    const _id = req.body._id;
-    
+    const _id = req.params._id;
+
     const deletedUser = await User.findByIdAndDelete(_id);
-    const deleteAuthUser = await AuthUser.findByIdAndDelete(deletedUser.authUser)
 
     if (!deletedUser) {
-      return res.status(500).json({ message: "User not Found" });
+      return res.status(404).json({ message: "User not Found" });
     }
+    await AuthUser.findByIdAndDelete(deletedUser.authUser);
     res
       .status(200)
       .json({ message: "User Deleted Successfully", data: deletedUser });
@@ -217,7 +222,6 @@ module.exports = {
   getUserByAuthUserId,
   createUser,
   login,
-  authenticate,
   updateUserById,
   deleteUserById,
 };

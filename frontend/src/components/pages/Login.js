@@ -30,10 +30,9 @@ import PersonIcon from "@mui/icons-material/Person";
 // import AddIcon from "@mui/icons-material/Add";
 import { blue } from "@mui/material/colors";
 
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+// Styling comes from the global theme (src/theme.js).
 import { AuthUserContext , ActivePageContext } from "../../App";
 
-const defaultTheme = createTheme();
 
 const possibleUsers = ["hostelUser", "hostelOwner"];
 
@@ -85,7 +84,9 @@ const Login = () => {
 
       localStorage.setItem("token", response.data.token);
 
-      if ( (userType === "hostelOwner" || userType === "") && response.data.roleName.rolename === "hostelOwner") {
+      if (response.data.roleName.rolename === "admin") {
+        navigate("/admin");
+      } else if ( (userType === "hostelOwner" || userType === "") && response.data.roleName.rolename === "hostelOwner") {
         navigate("/ownerdashboard", { state: userType });
       } else if ((userType === "hostelUser" || userType === "") && response.data.roleName.rolename === "hostelUser") {
         userType === "" ? navigate("/hostellist") : navigate("/bookinghostel", { state: hostelDetails });
@@ -119,7 +120,7 @@ const Login = () => {
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    <>
       <Grid container component="main" sx={{ height: "90vh" }}>
         <CssBaseline />
         <Grid
@@ -149,7 +150,7 @@ const Login = () => {
               alignItems: "center",
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+            <Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
               <LockOutlinedIcon />
             </Avatar>
             <Typography component="h1" variant="h5">
@@ -239,7 +240,7 @@ const Login = () => {
           </Box>
         </Grid>
       </Grid>
-    </ThemeProvider>
+    </>
   );
 };
 

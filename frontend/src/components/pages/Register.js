@@ -19,11 +19,10 @@ import Select  from "@mui/material/Select";
 import MenuItem  from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+// Styling comes from the global theme (src/theme.js).
 import { AuthUserContext } from "../../App";
 
 
-const defaultTheme = createTheme();
 
 export default function SignUp() {
   const {
@@ -82,7 +81,7 @@ export default function SignUp() {
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    <>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
@@ -93,7 +92,7 @@ export default function SignUp() {
             alignItems: "center",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+          <Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
@@ -207,6 +206,6 @@ export default function SignUp() {
           </Box>
         </Box>
       </Container>
-    </ThemeProvider>
+    </>
   );
 }

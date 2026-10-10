@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
+  // Optional: inquiries can come from students who aren't logged in.
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'AuthUser',
-    required: true,
   },
   receiver: {
     type: mongoose.Schema.Types.ObjectId,
@@ -26,4 +26,6 @@ const notificationSchema = new mongoose.Schema({
   },
 });
 
-exports.Notification = mongoose.model('Notification', notificationSchema);;
+notificationSchema.index({ receiver: 1, createdAt: -1 });
+
+exports.Notification = mongoose.model('Notification', notificationSchema);

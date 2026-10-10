@@ -1,36 +1,8 @@
-const nodemailer = require("nodemailer");
-
 const {Booking} = require("../models/bookingModel");
 const {User} = require("../models/userModel");
 const {Hostel} = require("../models/hostelModel");
 const {Notification} = require("../models/notificationModel");
-
-
-const transporter = nodemailer.createTransport(
-  {
-    service: "gmail",
-    auth: {
-      user: "hostelbuddyservices@gmail.com",
-      pass: "xwxllqqxnwyvfvuy",
-    },
-  }
-);
-const sendEmailNotification = (email, message) => {
-  const mailOptions = {
-    from: "hostelbuddyservices@gmail.com",
-    to: "nemasajal781@gmail.com",
-    subject: "New Booking Request",
-    text: message,
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log("Error sending email:", error);
-    } else {
-      console.log("Email sent:", info.response);
-    }
-  });
-};
+const { sendEmailNotification, siteUrl } = require("../services/email");
 
 
 const getBookingByHostelId = async (req , res) => {
@@ -49,9 +21,10 @@ const getBookingByHostelId = async (req , res) => {
 
 const createBooking = async (req, res) => {
   try {
+    // The booking is always made on behalf of the logged-in user, never a user_id from the body.
+    const user_id = req.user.id;
     const {
       hostel_id,
-      user_id,
       hostel_name,
       user_name,
       user_email,
@@ -61,15 +34,16 @@ const createBooking = async (req, res) => {
       desired_roomtype,
     } = req.body;
 
-    const hostel = await Hostel.findOne({ hostel_id });
-    console.log(hostel.authUser)
-    
+    const hostel = await Hostel.findOne({ hostel_id: String(hostel_id) });
+    if (!hostel) {
+      return res.status(404).json({ message: "Hostel not found" });
+    }
+
     const existingbooking = await Booking.findOne({$and : [{ user: user_id } , {hostel:hostel._id} ]});
     if (existingbooking) {
       return res
       .status(409)
       .json({ message: "Booking Already Exist ! Wait for Owner Reaction" });
-      return;
     }
     
     const booking = new Booking({
@@ -85,13 +59,31 @@ const createBooking = async (req, res) => {
     });
     await booking.save();
         
-    // Send notification email to the hostel owner
+    // In-app notification text (short) and a fuller email for the owner.
     const message = `Hurray!!,A new booking request by ${user_name}.`
-    sendEmailNotification(hostel.owner_email , message);
-    
+    sendEmailNotification(
+      hostel.owner_email,
+      [
+        `Hi ${hostel.owner_name},`,
+        ``,
+        `${user_name} has requested to book ${hostel.hostel_name}.`,
+        ``,
+        `Check-in date: ${checkin_date}`,
+        `Room type:     ${desired_roomtype}`,
+        `Email:         ${user_email}`,
+        `Phone:         ${user_phone}`,
+        ``,
+        `Accept or reject the request in your dashboard: ${siteUrl("/ownerdashboard")}`,
+        `You can reply to this email to contact the student directly.`,
+        ``,
+        `- HostelNavigator`,
+      ].join("\n"),
+      `New booking request for ${hostel.hostel_name}`,
+      { replyTo: user_email }
+    );
+
 
     const receiver = hostel.authUser;
-    console.log(receiver);
     const user = await User.findById(user_id);
     const sender = user.authUser;
     const readStatus = "no";
@@ -113,17 +105,23 @@ const createBooking = async (req, res) => {
 
 // Update booking status
 const updateBookingStatus = async (req, res) => {
-  const { bookingId, status } = req.body;
-  console.log(bookingId)
+  const { bookingId } = req.params;
+  const { status } = req.body;
+  if (status !== "accept" && status !== "reject") {
+    return res.status(400).json({ message: "Status must be 'accept' or 'reject'" });
+  }
   try {
-    // Update the booking status
-    const booking = await Booking.findByIdAndUpdate(
-       bookingId,
-      { status },
-      { new: true }
-    );
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    // Owner tokens carry their hostel's id, so owners can only act on their own bookings.
+    if (String(booking.hostel) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
-    console.log(booking)
+    booking.status = status === "accept" ? "accepted" : "rejected";
+    await booking.save();
 
     // Get the user's email
     const user = await User.findById(booking.user);
@@ -134,11 +132,26 @@ const updateBookingStatus = async (req, res) => {
     let message = "";
     if(status === "accept"){
       message = `Your booking request for ${booking.hostel_name} has been accepted.`;
-      sendEmailNotification(user.email_address, message);
     }else{
       message = `Your booking request for ${booking.hostel_name} has been rejected.`;
-      sendEmailNotification(user.email_address, message);
     }
+    const accepted = status === "accept";
+    sendEmailNotification(
+      user.email_address,
+      [
+        `Hi ${user.name},`,
+        ``,
+        message,
+        ``,
+        accepted
+          ? `Next steps: contact the owner to confirm your move-in, deposit and agreement.\nOwner: ${hostel.owner_name} - ${hostel.owner_phone_number} - ${hostel.owner_email}`
+          : `You can browse other hostels here: ${siteUrl("/hostellist")}`,
+        ``,
+        `- HostelNavigator`,
+      ].join("\n"),
+      `Booking ${accepted ? "accepted" : "update"}: ${booking.hostel_name}`,
+      { replyTo: accepted ? hostel.owner_email : undefined }
+    );
 
     const notification = new Notification({
       sender,

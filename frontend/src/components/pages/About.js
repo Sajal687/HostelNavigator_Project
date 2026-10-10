@@ -12,7 +12,7 @@ const AboutUs = () => {
         and creating a seamless experience for both hostel owners and residents.
       </Typography>
       <Grid container spacing={4}>
-        <Grid item xs={12} sm={6} sx={{borderRight:"1px dashed black" , pr:3}}>
+        <Grid item xs={12} sm={6} sx={{borderRight:{ sm: "1px solid #e2e8f0" } , pr:{ sm: 3 }}}>
           <Typography variant="h6" component="h3" gutterBottom>
             Our Mission
           </Typography>

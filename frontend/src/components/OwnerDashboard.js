@@ -2,27 +2,42 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
+  Alert,
   Box,
   Typography,
   Grid,
   Card,
   CardContent,
   Button,
+  Tab,
+  Tabs,
 } from "@mui/material";
 // import { Edit } from "@mui/icons-material";
 import Carousel from "react-material-ui-carousel";
 import {BASE_URL} from '../services/helper';
+import { getErrorMessage } from "../services/apiClient";
+import ListingDetailsEditor from "./owner/ListingDetailsEditor";
+import ListingSettings from "./owner/ListingSettings";
+import OwnerInquiries from "./owner/OwnerInquiries";
+import OwnerReviews from "./owner/OwnerReviews";
 
 const OwnerDashboard = () => {
   const [hostelDetails, setHostelDetails] = useState({});
   const [bookingRequests, setBookingRequests] = useState([]);
   const [changeStatus, setChangeStatus] = useState(false);
   const [allPendingStatus, setAllPendingStatus] = useState(true);
+  const [tab, setTab] = useState("overview");
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     const fetchHostelById = async () => {
+      setLoadError("");
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          setLoadError("Please log in as a hostel owner to see your dashboard.");
+          return;
+        }
         // console.log(token);
         const encodePayload = token.split(".")[1];
         const decodedPayload = JSON.parse(window.atob(encodePayload));
@@ -59,7 +74,7 @@ const OwnerDashboard = () => {
           setAllPendingStatus(nothingPending.includes("pending"));
         }
       } catch (error) {
-        // console.log("Error fetching hostel details:", error);
+        setLoadError(getErrorMessage(error, "We couldn't load your dashboard. Please log in again."));
       }
     };
     fetchHostelById();
@@ -129,16 +144,33 @@ const OwnerDashboard = () => {
     }
   };
 
+  const pendingCount = bookingRequests.filter((request) => request.status === "pending").length;
+
   return (
-    <Box maxWidth={600} mx="auto">
-      {Object.keys(hostelDetails).length > 0 ? (
-        
+    <Box maxWidth={900} mx="auto" px={{ xs: 1, sm: 2 }} py={2}>
+      {loadError ? (
+        <Alert severity="error" action={<Button color="inherit" size="small" onClick={() => setChangeStatus(!changeStatus)}>Retry</Button>}>
+          {loadError}
+        </Alert>
+      ) : Object.keys(hostelDetails).length > 0 ? (
+
         <Card>
           <CardContent>
-            <Typography variant="h4" gutterBottom>
+            <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: "1.6rem", md: "2.1rem" } }}>
               {hostelDetails.hostel_name}
             </Typography>
 
+            <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" allowScrollButtonsMobile sx={{ mb: 2, borderBottom: 1, borderColor: "divider" }}>
+              <Tab label="Overview" value="overview" />
+              <Tab label={pendingCount ? `Bookings (${pendingCount})` : "Bookings"} value="bookings" />
+              <Tab label="Inquiries" value="inquiries" />
+              <Tab label="Reviews" value="reviews" />
+            </Tabs>
+
+            {tab === "inquiries" && <OwnerInquiries />}
+            {tab === "reviews" && <OwnerReviews />}
+
+            {tab === "overview" && (
             <Grid container spacing={2} >
             <Grid item xs={12}>
             <Carousel animation="slide">
@@ -196,9 +228,23 @@ const OwnerDashboard = () => {
                   <Typography key={facility}>{facility}</Typography>
                 ))}
               </Grid>
+              <Grid item xs={12}>
+                <ListingSettings key={hostelDetails._id} hostel={hostelDetails} />
+              </Grid>
+              <Grid item xs={12}>
+                <ListingDetailsEditor
+                  key={hostelDetails._id}
+                  hostelId={hostelDetails._id}
+                  description={hostelDetails.description}
+                  houseRules={hostelDetails.house_rules}
+                />
+              </Grid>
             </Grid>
+            )}
 
-            <Typography variant="h6" mt={4} sx={{fontWeight: 600}}>
+            {tab === "bookings" && (
+            <>
+            <Typography variant="h6" sx={{fontWeight: 600}}>
               Booking Requests
             </Typography>
 
@@ -218,12 +264,11 @@ const OwnerDashboard = () => {
                     </Typography>
                     <Typography>Status: {request.status}</Typography>
                   </CardContent>
-                  <Box display="flex" justifyContent="flex-end" p={2}>
+                  <Box display="flex" justifyContent="flex-end" gap={2} p={2} flexWrap="wrap">
                     <Button
                       variant="contained"
                       color="success"
                       onClick={() => handleAcceptRequest(request._id)}
-                      sx={{ mr: 2 }}
                     >
                       Accept
                     </Button>
@@ -244,6 +289,8 @@ const OwnerDashboard = () => {
               <Typography>No Pending Request is Present</Typography>
             ) : (
               " "
+            )}
+            </>
             )}
           </CardContent>
         </Card>

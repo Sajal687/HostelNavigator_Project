@@ -39,6 +39,19 @@ const userSchema = new mongoose.Schema({
       ref: 'Feedback',
     }
   ],
+  // Saved hostels. Capped so the user document stays small.
+  favorites: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Hostel',
+      }
+    ],
+    validate: {
+      validator: (favorites) => favorites.length <= 100,
+      message: "You can save up to 100 favorite hostels",
+    },
+  },
   created_at: {
     type: Date,
     default: Date.now,

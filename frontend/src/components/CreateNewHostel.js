@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
 import axios from "axios";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
 import toast from "react-hot-toast";
 import ImageUpload from "./ImageUpload";
 import { FormProvider, useForm, Controller } from "react-hook-form";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthUserContext } from "../App";
 import {BASE_URL} from '../services/helper';
+import { FACILITIES, ROOM_TYPES } from "../constants/listing";
 import {
   Grid,
   Box,
@@ -29,27 +30,9 @@ import {
 } from "@mui/material";
 import CancelIcon from "@mui/icons-material/Cancel";
 
-const roomCapacity = [
-  { id: "single", label: "Single" },
-  { id: "double", label: "Double" },
-  { id: "triple", label: "Triple" },
-  { id: "multi-sharing", label: "Multi-Sharing" },
-];
-
-const facilities = [
-  "Table",
-  "Chair",
-  "Bed (without mattress)",
-  "Book Rack",
-  "Almirah",
-  "Kitchen",
-  "Separate Bathroom",
-  "Library",
-  "Laundry",
-  "24/7 Electricity",
-  "Water Supply",
-  "Dining Hall",
-];
+// Shared with search filters so listing values and filter values can't drift apart.
+const roomCapacity = ROOM_TYPES;
+const facilities = FACILITIES;
 
 const ITEM_HEIGHT = 45;
 const ITEM_PADDING_TOP = 5;
@@ -64,7 +47,6 @@ const MenuProps = {
 
 const CreateNewHostel = () => {
   const methods = useForm();
-  const [envVariable, setEnvVariable] = useState(null);
   const [addressDetail, setAddressDetail] = useState([]);
   const [cityNameVisible, setCityNameVisible] = useState(false);
   const [stateNameVisible, setStateNameVisible] = useState(false);
@@ -77,18 +59,6 @@ const CreateNewHostel = () => {
   const navigate = useNavigate();
   const { firstName, lastName, ownerEmail, ownerPhnNumber, password } =
     location.state;
-
-  useEffect(() => {
-    const fetchEnvrionmentVariable = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/api`);
-        setEnvVariable(response.data.data.replaceAll('"', ''));
-      } catch (error) {
-        console.error("Error fetching environment variables:", error);
-      }
-    };
-    fetchEnvrionmentVariable();
-  }, []);
 
   const handleRoomCapacityToggle = (roomId) => {
     setSelectedRoomCapacity((prevSelectedRoomCapacity) => {
@@ -104,20 +74,10 @@ const CreateNewHostel = () => {
     const codeValue = e.target.value;
 
     if (codeValue.length === 6) {
-      const options = {
-        method: "POST",
-        url: "https://get-details-by-pin-code-india.p.rapidapi.com/detailsbypincode",
-        headers: {
-          "content-type": "application/json",
-          "X-RapidAPI-Key": envVariable,
-          "X-RapidAPI-Host": "get-details-by-pin-code-india.p.rapidapi.com",
-        },
-        data: { pincode: codeValue },
-      };
-
       try {
-        const response = await axios.request(options);
-        setAddressDetail(response.data.details);
+        // The backend proxies the PIN code API so its key stays server-side.
+        const response = await axios.get(`${BASE_URL}/api/postal-code/${codeValue}`);
+        setAddressDetail(response.data.data);
         setCityNameVisible(true);
         setStateNameVisible(true);
       } catch (error) {
